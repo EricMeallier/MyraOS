@@ -1,6 +1,14 @@
 [org 0x7C00]
 [bits 16]
 
+KERNEL_CODE_SEG equ 0x08
+KERNEL_DATA_SEG equ 0x10
+USER_CODE_SEG equ 0x18
+USER_DATA_SEG equ 0x20
+
+KERNEL_LOAD_SEG equ 0x1000 
+KERNEL_START_ADDR equ 0x10000
+
 start:
     jmp main
 
@@ -21,9 +29,40 @@ main:
 
     sti
 
+    call .load_kernel
+
     mov si, welcome
 
     call print
+
+.load_kernel:
+    ; input: none
+    ; modifies: ax, bx, cx, dx, es
+
+    mov ax, KERNEL_LOAD_SEG
+    mov es, ax
+    xor bx, bx
+    mov dh, 0x00
+    mov dl, 0x00
+    mov cl, 0x02
+    mov ch, 0x00
+    mov ah, 0x02
+    mov al, 8
+    int 0x13
+
+    jc disk_read_error
+
+    ret
+
+disk_read_error:
+    ; input: none
+    ; modifies: si
+
+    mov si, kernel_injection_error
+
+    call print
+
+    hlt
 
 clear_screen:
     ; input: none
@@ -119,11 +158,6 @@ gdt_start:
     ; input: none
     ; modifies: none
 
-    KERNEL_CODE_SEG equ 0x08
-    KERNEL_DATA_SEG equ 0x10
-    USER_CODE_SEG equ 0x18
-    USER_DATA_SEG equ 0x20
-
     ; null descriptor
     dq 0
 
@@ -181,6 +215,9 @@ set_gdt:
     ret
 
 enable_protected_mode:
+    ; input: none
+    ; modifies: eax
+
     cli
     mov eax, cr0
     or eax, 1
@@ -189,6 +226,8 @@ enable_protected_mode:
     jmp KERNEL_CODE_SEG:protected_mode_start
 
 welcome: db 'Welcome to MyraOS! Booting...', 0
+kernel_injection_error: db 'Error: Could not inject kernel', 0
+
 
 [bits 32]
 
@@ -202,7 +241,7 @@ protected_mode_start:
 
     mov esp, 0x90000
 
-    jmp $
+    jmp KERNEL_CODE_SEG:KERNEL_START_ADDR
 
 times 510 - ($ - $$) db 0
 dw 0xAA55
