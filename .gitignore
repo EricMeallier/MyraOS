@@ -1,0 +1,30 @@
+# Binary build output
+*.bin
+*.img
+*.iso
+*.o
+*.elf
+*.map
+
+# NASM listing/debug files
+*.lst
+*.sym
+
+# QEMU
+*.log
+*.qemu
+*.vdi
+*.vmdk
+*.qcow2
+
+# Backup/temporary files
+*~
+*.swp
+.DS_Store
+
+# VSCode settings
+.vscode/
+
+# Build folders
+build/
+out/
