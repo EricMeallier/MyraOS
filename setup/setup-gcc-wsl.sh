@@ -8,7 +8,9 @@ export TARGET=i386-elf
 export PATH="$PREFIX/bin:$PATH"
 
 # Add to shell profile permanently
-if ! grep -q "$PREFIX/bin" ~/.bashrc; then
+if ! grep -q 'export PATH=.*/opt/cross/bin' ~/.bashrc; then
+    echo '' >> ~/.bashrc
+    echo '# Add i386-elf cross compiler to PATH' >> ~/.bashrc
     echo 'export PATH="$HOME/opt/cross/bin:$PATH"' >> ~/.bashrc
 fi
 

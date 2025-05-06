@@ -6,12 +6,14 @@ export PREFIX="$HOME/opt/cross"
 export TARGET=i386-elf
 export PATH="$PREFIX/bin:$PATH"
 
-# Add to shell profile permanently
-if ! grep -q "$PREFIX/bin" ~/.zprofile; then
+# Add to ~/.zprofile (for Zsh) if not already there
+if ! grep -q "$PREFIX/bin" ~/.zprofile 2>/dev/null; then
+    echo '' >> ~/.zprofile
+    echo '# Add i386-elf cross compiler to PATH' >> ~/.zprofile
     echo 'export PATH="$HOME/opt/cross/bin:$PATH"' >> ~/.zprofile
 fi
 
-# === Step 3: Create a source folder ===
+# === Step 3: Create source folder ===
 mkdir -p "$HOME/src"
 cd "$HOME/src"
 
