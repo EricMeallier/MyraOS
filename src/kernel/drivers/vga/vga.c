@@ -6,7 +6,7 @@
 volatile uint16_t *video_memory = (uint16_t*) VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE_ON_BLACK;
 
-void vga_clear(void){
+void vga_clear(void) {
     const uint16_t blank = (' ' | (color << 8));
 
     for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
