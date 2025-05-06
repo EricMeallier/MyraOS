@@ -25,8 +25,7 @@ void vga_put_char(char c) {
 }
 
 void vga_write(const char *str) {
-    size_t i = 0;
-    for (; str[i] != 0; i++) {
+    for (size_t i = 0; str[i] != 0; i++) {
         vga_put_char(str[i]);
     }
 }
