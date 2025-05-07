@@ -35,6 +35,10 @@ void vga_set_color(uint8_t new_color) {
 }
 
 void vga_set_cursor(uint16_t pos) {
+    // TODO: replace with scroll in the future
+    if (pos >= VGA_WIDTH * VGA_HEIGHT)
+        return
+
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(pos & 0xFF));
     outb(0x3D4, 0x0E);
