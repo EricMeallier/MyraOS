@@ -9,6 +9,7 @@ SECTIONS {
     }
     
     .text : {
+        KEEP(*(.text._start))
         *(.text*)
     }
     

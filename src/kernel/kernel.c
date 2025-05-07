@@ -17,6 +17,7 @@ void kernel_main() {
     }
 }
 
+__attribute__((section(".text._start")))
 void _start() {
     kernel_main();
 }
