@@ -51,7 +51,7 @@ uint16_t vga_get_cursor(void) {
     outb(0x3D4, 0x0F);
     pos |= inb(0x3D5);
     outb(0x3D4, 0x0E);
-    pos |= ((uint16_t)inb(0x3D5)) << 8;
-    
+    pos |= ((uint16_t) inb(0x3D5)) << 8;
+
     return pos;
 }
