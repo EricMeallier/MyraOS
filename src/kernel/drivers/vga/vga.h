@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define VGA_VIDEO_MEMORY 0xB8000
+#define VGA_VIDEO_MEMORY (uint16_t*) 0xB8000
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
