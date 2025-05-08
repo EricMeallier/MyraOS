@@ -6,6 +6,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-
+# Extra idea stuff
 misc.xml
 vcs.xml
+editor.xml
+codeStyles/

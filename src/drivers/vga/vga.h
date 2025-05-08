@@ -26,3 +26,6 @@ void vga_set_color(uint8_t new_color);
 void vga_set_cursor(uint16_t pos);
 
 uint16_t vga_get_cursor(void);
+
+// scroll
+void vga_scroll(uint8_t lines);

@@ -16,9 +16,16 @@ void vga_clear(void) {
     vga_set_cursor(0);
 }
 
-void vga_put_char(char c) {
+void vga_put_char(const char c) {
     const uint16_t cursor_pos = vga_get_cursor();
     const uint16_t char_with_color = (c | (color << 8));
+
+    if (c == '\n') {
+        const uint16_t new_cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
+        vga_set_cursor(new_cursor_pos);
+
+        return;
+    }
 
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
@@ -30,14 +37,15 @@ void vga_write(const char *str) {
     }
 }
 
-void vga_set_color(uint8_t new_color) {
+void vga_set_color(const uint8_t new_color) {
     color = new_color;
 }
 
 void vga_set_cursor(uint16_t pos) {
-    // TODO: replace with scroll in the future
-    if (pos >= VGA_WIDTH * VGA_HEIGHT)
-        return;
+    if (pos >= VGA_WIDTH * VGA_HEIGHT) {
+        vga_scroll(1);
+        pos -= VGA_WIDTH;
+    }
 
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(pos & 0xFF));
@@ -54,4 +62,20 @@ uint16_t vga_get_cursor(void) {
     pos |= ((uint16_t) inb(0x3D5)) << 8;
 
     return pos;
+}
+
+void vga_scroll(const uint8_t lines) {
+    // clear first n lines
+    const uint16_t blank = (' ' | color << 8);
+    for (size_t i = 0; i < lines * VGA_WIDTH; i++) {
+        video_memory[i] = blank;
+    }
+
+    // transfer each line to the top free place
+    for (size_t i = lines * VGA_WIDTH; i < VGA_WIDTH * VGA_HEIGHT; i++) {
+        video_memory[i - lines * VGA_WIDTH] = video_memory[i];
+        video_memory[i] = blank;
+    }
+
+    vga_set_cursor(vga_get_cursor() - VGA_WIDTH * lines);
 }

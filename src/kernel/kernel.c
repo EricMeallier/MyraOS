@@ -10,7 +10,7 @@ void kernel_main() {
     vga_set_color(VGA_COLOR_GREEN_ON_BLACK);
     vga_write("MyraOS");
     vga_set_color(VGA_COLOR_WHITE_ON_BLACK);
-    vga_write("!");
+    vga_write("!\n");
 
     while (true) {
         __asm__ volatile("hlt");
