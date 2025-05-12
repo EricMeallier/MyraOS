@@ -10,4 +10,7 @@
 misc.xml
 vcs.xml
 editor.xml
+modules.xml
 codeStyles/
+# Iml files
+*.iml
