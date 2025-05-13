@@ -1,7 +1,7 @@
 #include <stdbool.h>
 
-#include "drivers/vga/vga.h"
-#include "drivers/vga/vga_colors.h"
+#include "vga/vga.h"
+#include "vga/vga_colors.h"
 
 void kernel_main() {
     vga_clear();

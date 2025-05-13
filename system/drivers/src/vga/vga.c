@@ -1,7 +1,7 @@
-#include "vga.h"
+#include "vga/vga.h"
 
-#include "vga_colors.h"
-#include "kernel/io/port_io.h"
+#include "vga/vga_colors.h"
+#include "io/port_io.h"
 
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE_ON_BLACK;
