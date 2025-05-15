@@ -11,6 +11,8 @@ misc.xml
 vcs.xml
 editor.xml
 modules.xml
+# Folders
+dictionaries/
 codeStyles/
 # Iml files
 *.iml
