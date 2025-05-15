@@ -7,7 +7,7 @@ volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE_ON_BLACK;
 
 void vga_clear(void) {
-    const uint16_t blank = (' ' | (color << 8));
+    const uint16_t blank = ' ' | color << 8;
 
     for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
         video_memory[i] = blank;
@@ -17,8 +17,13 @@ void vga_clear(void) {
 }
 
 void vga_put_char(const char c) {
-    const uint16_t cursor_pos = vga_get_cursor();
-    const uint16_t char_with_color = (c | (color << 8));
+    uint16_t cursor_pos = vga_get_cursor();
+    const uint16_t char_with_color = c | color << 8;
+
+    if (cursor_pos == VGA_WIDTH * VGA_HEIGHT) {
+        vga_scroll(1);
+        cursor_pos -= VGA_WIDTH;
+    }
 
     if (c == '\n') {
         const uint16_t new_cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
@@ -41,32 +46,27 @@ void vga_set_color(const uint8_t new_color) {
     color = new_color;
 }
 
-void vga_set_cursor(uint16_t pos) {
-    if (pos >= VGA_WIDTH * VGA_HEIGHT) {
-        vga_scroll(1);
-        pos -= VGA_WIDTH;
-    }
-
+void vga_set_cursor(const uint16_t cursor_pos) {
     outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D5, (uint8_t)(cursor_pos & 0xFF));
     outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    outb(0x3D5, (uint8_t)(cursor_pos >> 8 & 0xFF));
 }
 
 uint16_t vga_get_cursor(void) {
-    uint16_t pos = 0;
+    uint16_t cursor_pos = 0;
 
     outb(0x3D4, 0x0F);
-    pos |= inb(0x3D5);
+    cursor_pos |= inb(0x3D5);
     outb(0x3D4, 0x0E);
-    pos |= ((uint16_t) inb(0x3D5)) << 8;
+    cursor_pos |= (uint16_t) inb(0x3D5) << 8;
 
-    return pos;
+    return cursor_pos;
 }
 
 void vga_scroll(const uint8_t lines) {
     // clear first n lines
-    const uint16_t blank = (' ' | color << 8);
+    const uint16_t blank = ' ' | color << 8;
     for (size_t i = 0; i < lines * VGA_WIDTH; i++) {
         video_memory[i] = blank;
     }
