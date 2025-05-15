@@ -23,7 +23,7 @@ void vga_write(const char *str);
 void vga_set_color(uint8_t new_color);
 
 // cursor
-void vga_set_cursor(uint16_t pos);
+void vga_set_cursor(uint16_t cursor_pos);
 
 uint16_t vga_get_cursor(void);
 
