@@ -1,4 +1,7 @@
-#pragma once
+#ifndef VGA_COLORS_H
+#define VGA_COLORS_H
 
 #define VGA_COLOR_WHITE_ON_BLACK 0x0F
 #define VGA_COLOR_GREEN_ON_BLACK 0x0A
+
+#endif // VGA_COLORS_H

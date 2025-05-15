@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PORT_IO_H
+#define PORT_IO_H
 
 #include <stdint.h>
 
@@ -16,3 +17,5 @@ uint16_t inw(uint16_t port);
 void outl(uint16_t port, uint32_t value);
 
 uint32_t inl(uint16_t port);
+
+#endif // PORT_IO_H
