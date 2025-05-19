@@ -4,9 +4,12 @@
 #include "io/port_io.h"
 
 #include <stddef.h>
+#include <stdbool.h>
 
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE_ON_BLACK;
+
+bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos);
 
 void vga_clear(void) {
     const uint16_t blank = ' ' | color << 8;
@@ -27,15 +30,27 @@ void vga_put_char(const char c) {
         cursor_pos -= VGA_WIDTH;
     }
 
-    if (c == '\n') {
-        const uint16_t new_cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
-        vga_set_cursor(new_cursor_pos);
-
+    if (check_for_escape_chars(c, cursor_pos))
         return;
-    }
-
+        
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
+}
+
+bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
+    switch (c) {
+        case '\n':
+            cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
+            break;
+        case '\t':
+            cursor_pos = cursor_pos + 4;
+            break;
+        default:
+            return false;
+    }
+
+    vga_set_cursor(cursor_pos);
+    return true;
 }
 
 void vga_write(const char *str) {
@@ -81,3 +96,4 @@ void vga_scroll(const uint8_t lines) {
 
     vga_set_cursor(vga_get_cursor() - VGA_WIDTH * lines);
 }
+
