@@ -8,9 +8,9 @@ void kernel_main() {
     kclear_screen();
 
     kprint("Welcome to ");
-    vga_set_color(VGA_COLOR_GREEN_ON_BLACK);
+    kset_color(COLOR_GREEN);
     kprint("MyraOS");
-    vga_set_color(VGA_COLOR_WHITE_ON_BLACK);
+    kset_color(COLOR_WHITE);
     kprintln("!");
 
     while (true) {

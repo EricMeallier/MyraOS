@@ -5,6 +5,11 @@
 #ifndef KPRINT_H
 #define KPRINT_H
 
+typedef enum color_t {
+    COLOR_WHITE,
+    COLOR_GREEN
+} color_t;
+
 // print
 void kprint(const char *str);
 
@@ -12,5 +17,8 @@ void kprintln(const char *str);
 
 // clear screen
 void kclear_screen(void);
+
+// set color
+void kset_color(const color_t color);
 
 #endif //KPRINT_H

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
-volatile uint8_t color = VGA_COLOR_WHITE_ON_BLACK;
+volatile uint8_t color = VGA_COLOR_WHITE;
 
 bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos);
 
