@@ -18,6 +18,9 @@ FLOPPY_IMG     = build/floppy.img
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC_FILES:.c=.o))
 
+INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -name include)
+INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
+
 # === OS-independent helpers (Unix only) ===
 RM          = rm -rf
 MKDIR       = mkdir -p
@@ -40,7 +43,7 @@ $(BOOT_BIN): $(BOOT_SRC)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo [GCC] Compiling $<
 	@$(MKDIR) $(dir $@)
-	@$(CC) -ffreestanding -m32 -I$(SRC_DIR)/kernel/include -I$(SRC_DIR)/drivers/include \
+	@$(CC) -ffreestanding -m32 $(INCLUDE_FLAGS) \
 		-c $< -o $@ -Wall -Wextra -std=gnu99 -O0 -ggdb
 
 # Link raw kernel binary (used for floppy)
