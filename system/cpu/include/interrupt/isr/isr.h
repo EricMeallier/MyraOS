@@ -9,21 +9,21 @@
 
 #define ISR_EXCEPTION_AMOUNT 32
 
-// stubs
-extern void (*const interrupt_stubs[ISR_EXCEPTION_AMOUNT])(void);
-
-// handler
-extern void isr_handler(uint32_t int_num, uint32_t error_code);
-
-// error messages
-extern const char *exception_messages[ISR_EXCEPTION_AMOUNT];
-
 typedef struct {
     uint32_t ds; // manual
     uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax; // pusha
     uint32_t interrupt, error; // manual/automatic
     uint32_t eip, cs, eflags, esp, ss; // CPU pushed
-} __attribute__((packed)) Registers;
+} __attribute__((packed)) registers_t;
+
+// stubs
+extern void (*const interrupt_stubs[ISR_EXCEPTION_AMOUNT])(void);
+
+// handler
+extern void isr_handler(const registers_t* regs);
+
+// error messages
+extern const char *exception_messages[ISR_EXCEPTION_AMOUNT];
 
 // isr
 extern void _isr0();

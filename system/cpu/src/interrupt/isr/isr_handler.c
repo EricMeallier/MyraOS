@@ -4,17 +4,14 @@
 
 #include <stdbool.h>
 
-void isr_handler(uint32_t int_num, uint32_t error_code) {
+void isr_handler(const registers_t* regs) {
     kclear_screen();
     kset_color(COLOR_RED);
 
     kprintln("Exception!");
 
-    vga_write_int(int_num);
-    vga_write_int(error_code);
-
-    if (int_num < ISR_EXCEPTION_AMOUNT) {
-        kprintln(exception_messages[int_num]);
+    if (regs->interrupt < ISR_EXCEPTION_AMOUNT) {
+        kprintln(exception_messages[regs->interrupt]);
     } else {
         kprintln("Unknown Exception");
     }

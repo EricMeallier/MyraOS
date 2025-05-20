@@ -1,7 +1,5 @@
 [bits 32]
 
-section .isr_stubs progbits alloc exec nowrite
-
 global _isr0
 global _isr1
 global _isr2

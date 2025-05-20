@@ -7,10 +7,10 @@ extern isr_handler
 global _isr_common_stub
 _isr_common_stub:
     pusha
-    push ds
-    push es
-    push fs
-    push gs
+
+    xor eax, eax
+    mov ax, ds
+    push eax
 
     mov ax, KERNEL_DATA_SEG
     mov ds, ax
@@ -18,12 +18,18 @@ _isr_common_stub:
     mov fs, ax
     mov gs, ax
 
-    call isr_handler
+    mov eax, esp
+    push eax
 
-    pop gs
-    pop fs
-    pop es
-    pop ds
+    call isr_handler
+    add esp, 4
+
+    pop eax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
     popa
 
     ; clean the error and the interrupt
@@ -31,4 +37,3 @@ _isr_common_stub:
     sti
 
     iret
-    
