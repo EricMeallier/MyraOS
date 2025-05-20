@@ -30,11 +30,42 @@ void vga_put_char(const char c) {
         cursor_pos -= VGA_WIDTH;
     }
 
-    if (check_for_escape_chars(c, cursor_pos))
+    if (check_for_escape_chars(c, cursor_pos)) {
         return;
+    }
         
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
+}
+
+void vga_write_int(int num) {
+    char buf[12];
+    int i = 0;
+    bool is_negative = false;
+
+    if (num == 0) {
+        vga_put_char('0');
+        return;
+    }
+
+    if (num < 0) {
+        is_negative = true;
+        num = -num;
+    }
+
+    while (num > 0) {
+        buf[i++] = '0' + (num % 10);
+        num /= 10;
+    }
+
+    if (is_negative) {
+        buf[i++] = '-';
+    }
+
+    // reverse the buffer
+    while (--i >= 0) {
+        vga_put_char(buf[i]);
+    }
 }
 
 bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {

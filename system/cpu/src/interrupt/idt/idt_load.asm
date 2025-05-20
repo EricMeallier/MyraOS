@@ -1,6 +1,6 @@
 [bits 32]
 
-; void __attribute__((cdecl)) _idt_load(idt_descriptor_t* idt_descriptor);
+; void _idt_load(idt_descriptor_t* idt_descriptor);
 global _idt_load
 
 _idt_load:
@@ -9,7 +9,7 @@ _idt_load:
     mov ebp, esp
 
     ; load idt
-    mov eax, [esp + 4]
+    mov eax, [esp + 8]
     lidt [eax]
 
     ; restore old call frame

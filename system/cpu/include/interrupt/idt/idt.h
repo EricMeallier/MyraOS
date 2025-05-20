@@ -10,6 +10,8 @@
 #define IDT_SIZE 256
 #define IDT_ENTRY_SIZE sizeof(idt_entry_t)
 
+#define KERNEL_CODE_SEG 0x08
+
 typedef struct idt_entry_t {
     uint16_t offset_low;
     uint16_t segment_selector;
@@ -38,7 +40,7 @@ typedef enum idt_flags {
     IDT_FLAG_PRESENT = 0X80,
 } idt_flags;
 
-void __attribute__((cdecl)) _idt_load(idt_descriptor_t* idt_descriptor);
+void _idt_load(idt_descriptor_t* idt_descriptor);
 
 void idt_set_gate(uint8_t index, uint32_t base, uint16_t segment, uint8_t flags);
 

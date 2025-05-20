@@ -33,5 +33,9 @@ void kset_color(const color_t color) {
         vga_color = VGA_COLOR_GREEN;
     }
 
+    if (color == COLOR_RED) {
+        vga_color = VGA_COLOR_RED;
+    }
+
     vga_set_color(vga_color);
 }

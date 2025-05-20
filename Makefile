@@ -19,7 +19,10 @@ SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC_FILES:.c=.o))
 
 INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -name include)
-INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
+INCLUDE_FLAGS := $(foreach dir, $(INCLUDE_DIRS), -I"$(dir)")
+
+ASM_FILES := $(filter-out $(BOOT_SRC), $(shell find $(SRC_DIR) -name '*.asm'))
+ASM_OBJ_FILES := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(ASM_FILES:.asm=.o))
 
 # === OS-independent helpers (Unix only) ===
 RM          = rm -rf
@@ -46,16 +49,22 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@$(CC) -ffreestanding -m32 $(INCLUDE_FLAGS) \
 		-c $< -o $@ -Wall -Wextra -std=gnu99 -O0 -ggdb
 
+# Compile asm sources
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm
+	@echo [NASM] Assembling $<
+	@$(MKDIR) $(dir $@)
+	@$(ASM) -f elf $< -o $@
+
 # Link raw kernel binary (used for floppy)
-$(KERNEL_BIN): $(OBJ_FILES) $(LINKER_SCRIPT)
+$(KERNEL_BIN): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 	@echo [LD] Linking kernel BIN...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) -nostdlib -m elf_i386
+	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(patsubst %,'%',$(OBJ_FILES) $(ASM_OBJ_FILES)) -nostdlib -m elf_i386
 
 # Link ELF kernel (for debugging with symbols)
-$(KERNEL_ELF): $(OBJ_FILES) $(LINKER_SCRIPT)
+$(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 	@echo [LD] Linking kernel ELF (with symbols)...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) -nostdlib -m elf_i386
-
+	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(patsubst %,'%',$(OBJ_FILES) $(ASM_OBJ_FILES)) -nostdlib -m elf_i386
+	
 # Floppy image
 $(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
 	@echo [IMG] Creating floppy image...
@@ -70,7 +79,7 @@ run: $(FLOPPY_IMG)
 	@$(QEMU) -drive format=raw,file="$(FLOPPY_IMG)",if=floppy
 
 # Run in QEMU with GDB support
-run-gdb: $(FLOPPY_IMG) $(KERNEL_ELF)
+debug: $(FLOPPY_IMG) $(KERNEL_ELF)
 	@echo [QEMU] Launching QEMU in GDB mode...
 	@$(QEMU) -s -S -drive format=raw,file="$(FLOPPY_IMG)",if=floppy
 

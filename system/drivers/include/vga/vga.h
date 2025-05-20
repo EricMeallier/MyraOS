@@ -19,6 +19,8 @@ void vga_put_char(char c);
 
 void vga_write(const char *str);
 
+void vga_write_int(const int num);
+
 // colors
 void vga_set_color(uint8_t new_color);
 

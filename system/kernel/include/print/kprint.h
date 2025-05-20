@@ -7,7 +7,8 @@
 
 typedef enum color_t {
     COLOR_WHITE,
-    COLOR_GREEN
+    COLOR_GREEN,
+    COLOR_RED
 } color_t;
 
 // print
