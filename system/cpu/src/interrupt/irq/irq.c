@@ -1,7 +1,6 @@
 #include "interrupt/irq/irq.h"
 
 #include "interrupt/idt/idt.h"
-#include "print/kprint.h"
 #include "io/port_io.h"
 
 #include <stddef.h>
@@ -63,4 +62,6 @@ void irq_install() {
             IDT_FLAG_PRESENT | IDT_FLAG_RING0 | IDT_FLAG_GATE_TASK_32BIT_INT
         );
     }
+
+    __asm__ volatile("sti");
 }
