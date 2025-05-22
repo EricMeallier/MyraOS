@@ -18,6 +18,15 @@ void kprintln(const char *str) {
     vga_write("\n");
 }
 
+void kprintf(const char *fmt, ...) {
+    va_list argp;
+    va_start(argp, fmt);
+
+    vga_write_format(fmt, argp);
+
+    va_end(argp);
+}
+
 void kclear_screen(void) {
     vga_clear();
 }

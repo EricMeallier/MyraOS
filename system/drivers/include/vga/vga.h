@@ -2,6 +2,7 @@
 #define VGA_H
 
 #include <stdint.h>
+#include <stdarg.h>
 
 #define VGA_VIDEO_MEMORY (uint16_t*) 0xB8000
 
@@ -15,11 +16,15 @@ extern volatile uint8_t color;
 void vga_clear(void);
 
 // write
-void vga_put_char(char c);
+void vga_put_char(const char c);
 
 void vga_write(const char *str);
 
+void vga_write_format(const char *fmt, const va_list argp);
+
 void vga_write_int(const int num);
+
+void vga_write_hex(const uint32_t num);
 
 // colors
 void vga_set_color(uint8_t new_color);

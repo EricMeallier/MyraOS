@@ -38,6 +38,62 @@ void vga_put_char(const char c) {
     vga_set_cursor(cursor_pos + 1);
 }
 
+void vga_write(const char *str) {
+    for (size_t i = 0; str[i] != 0; i++) {
+        vga_put_char(str[i]);
+    }
+}
+
+void vga_write_format(const char *fmt, const va_list argp) {
+    while (*fmt) {
+        if (*fmt != '%') {
+            vga_put_char(*fmt);
+        } else {
+            fmt++;
+
+            switch (*fmt) {
+                case 'd': {
+                    int val = va_arg(argp, int);
+                    vga_write_int(val);
+
+                    break;
+                }
+                case 's': {
+                    const char *str = va_arg(argp, const char *);
+                    vga_write(str);
+
+                    break;
+                }
+                case 'c': {
+                    char c = (char)va_arg(argp, int);
+                    vga_put_char(c);
+
+                    break;
+                }
+                case 'x': {
+                    uint32_t val = va_arg(argp, uint32_t);
+                    vga_write_hex(val);
+
+                    break;
+                }
+                case '%': {
+                    vga_put_char('%');
+
+                    break;
+                }
+                default: {
+                    vga_put_char('%');
+                    vga_put_char(*fmt);
+
+                    break;
+                }
+            }
+        }
+
+        fmt++;
+    }
+}
+
 void vga_write_int(int num) {
     char buf[12];
     int i = 0;
@@ -68,6 +124,31 @@ void vga_write_int(int num) {
     }
 }
 
+void vga_write_hex(const uint32_t num) {
+    vga_write("0x");
+
+    bool started = false;
+    for (int i = 28; i >= 0; i -= 4) {
+        uint8_t nibble = (num >> i) & 0xF;
+
+        if (nibble == 0 && !started && i != 0) {
+            // skip leading zeroes
+            continue; 
+        }
+
+        started = true;
+        if (nibble < 10) {
+            vga_put_char('0' + nibble);
+        } else {
+            vga_put_char('A' + (nibble - 10));
+        }
+    }
+
+    if (!started) {
+        vga_put_char('0');
+    }
+}
+
 bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
     switch (c) {
         case '\n':
@@ -82,12 +163,6 @@ bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
 
     vga_set_cursor(cursor_pos);
     return true;
-}
-
-void vga_write(const char *str) {
-    for (size_t i = 0; str[i] != 0; i++) {
-        vga_put_char(str[i]);
-    }
 }
 
 void vga_set_color(const uint8_t new_color) {
