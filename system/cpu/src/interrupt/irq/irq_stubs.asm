@@ -17,11 +17,13 @@ global _irq13
 global _irq14
 global _irq15
 
+extern irq_common_stub
+
 %macro IRQ_STUB 1
-global irq%1
-irq%1:
+_irq%1:
     cli
-    push byte %1 + 32     ; push the IDT vector
+    push byte %1 + 32
+
     jmp irq_common_stub
 %endmacro
 
