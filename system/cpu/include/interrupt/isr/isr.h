@@ -5,25 +5,21 @@
 #ifndef ISR_H
 #define ISR_H
 
-#include <stdint.h>
+#include "interrupt/idt/idt.h"
 
 #define ISR_EXCEPTION_AMOUNT 32
 
-typedef struct {
-    uint32_t ds; // manual
-    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax; // pusha
-    uint32_t interrupt, error; // manual/automatic
-    uint32_t eip, cs, eflags, esp, ss; // CPU pushed
-} __attribute__((packed)) registers_t;
-
 // stubs
-extern void (*const interrupt_stubs[ISR_EXCEPTION_AMOUNT])(void);
+extern void (*const isr_stubs[ISR_EXCEPTION_AMOUNT])(void);
 
 // handler
 extern void isr_handler(const registers_t* regs);
 
 // error messages
 extern const char *exception_messages[ISR_EXCEPTION_AMOUNT];
+
+// install
+extern void isr_install(void);
 
 // isr
 extern void _isr0();

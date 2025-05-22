@@ -1,28 +1,39 @@
 #include "interrupt/irq/irq.h"
+
 #include "interrupt/idt/idt.h"
 #include "print/kprint.h"
 #include "io/port_io.h"
 
 #include <stddef.h>
 
-void irq_install_handler(int irq, void (*handler)(registers_t* regs)) {
+irq_call_t irq_routines[IRQ_SIZE] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+void (*const irq_stubs[IRQ_SIZE])(void) = {
+    _irq0, _irq1, _irq2, _irq3,
+    _irq4, _irq5, _irq6, _irq7,
+    _irq8, _irq9, _irq10, _irq11,
+    _irq12, _irq13, _irq14, _irq15
+};
+
+void irq_install_handler(const int irq, void (*handler)(registers_t* regs)) {
     irq_routines[irq] = handler;
 }
 
 void irq_handler(registers_t* regs) {
-    int irq = regs->interrupt - IRQ_INTERRUPT_OFFSET;
-
-    kprint("IRQ error");
+    const uint32_t irq = regs->interrupt - IRQ_INTERRUPT_OFFSET;
 
     if (irq < IRQ_SIZE && irq_routines[irq]) {
         irq_routines[irq](regs);
     }
 
-    if (irq > 7) 
+    if (irq > 7) {
         outb(0xA0, 0x20); // EOI to slave PIC
+    }
     outb(0x20, 0x20);     // EOI to master PIC
-
-} 
+}
 
 void irq_remap() {
     outb(0x20, 0x11);  // init PIC1 & PIC2
@@ -41,13 +52,13 @@ void irq_remap() {
     outb(0xA1, 0x00); 
 }
 
-void install_irq() {
+void irq_install() {
     irq_remap();
 
-    for (size_t i = IRQ_INTERRUPT_OFFSET; i < IRQ_SIZE + IRQ_INTERRUPT_OFFSET; i++) {
+    for (size_t i = IRQ_INTERRUPT_OFFSET; i < IRQ_INTERRUPT_OFFSET + IRQ_SIZE; i++) {
         idt_set_gate(
             i,
-            (uint32_t)irq_stubs[i - IRQ_INTERRUPT_OFFSET],
+            (uint32_t) irq_stubs[i - IRQ_INTERRUPT_OFFSET],
             KERNEL_CODE_SEG,
             IDT_FLAG_PRESENT | IDT_FLAG_RING0 | IDT_FLAG_GATE_TASK_32BIT_INT
         );

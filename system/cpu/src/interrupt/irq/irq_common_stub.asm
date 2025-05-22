@@ -5,6 +5,7 @@ extern irq_handler
 KERNEL_DATA_SEG equ 0x10
 
 global _irq_common_stub
+
 _irq_common_stub:
     pusha
 
@@ -31,9 +32,7 @@ _irq_common_stub:
     mov gs, ax
 
     popa
-
-    ; clean the error and the interrupt
-    add esp, 8
+    add esp, 4
     sti
 
     iret

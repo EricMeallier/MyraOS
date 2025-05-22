@@ -1,20 +1,25 @@
+//
+// Created by Emily Gofeld on 20/05/2025.
+// Edited by Dvir Biton
+//
+
 #ifndef IRQ_H
 #define IRQ_H
 
-#include "interrupt/isr/isr.h"
+#include "interrupt/idt/idt.h"
 
 #define IRQ_SIZE 16
 #define IRQ_INTERRUPT_OFFSET 32
 
 typedef void (*irq_call_t)(registers_t*);
-irq_call_t irq_routines[IRQ_SIZE] = { 0 };
+extern irq_call_t irq_routines[IRQ_SIZE];
 
 extern void (*const irq_stubs[IRQ_SIZE])(void);
 
 extern void irq_install_handler(int irq, void (*handler)(registers_t* regs));
 extern void irq_handler(registers_t* regs);
-extern void irq_remap();
-extern void install_irq();
+extern void irq_remap(void);
+extern void irq_install(void);
 
 extern void _irq0();
 extern void _irq1();
