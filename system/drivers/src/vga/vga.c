@@ -1,6 +1,6 @@
 #include "vga/vga.h"
 
-#include "vga/vga_colors.h"
+#include "vga/vga_color.h"
 #include "io/port_io.h"
 
 #include <stddef.h>

@@ -9,6 +9,8 @@ USER_DATA_SEG equ 0x20
 KERNEL_LOAD_SEG equ 0x1000 
 KERNEL_START_ADDR equ 0x10000
 
+KERNEL_SEGMENTS equ 32
+
 start:
     jmp main
 
@@ -47,7 +49,7 @@ main:
     mov cl, 0x02
     mov ch, 0x00
     mov ah, 0x02
-    mov al, 8
+    mov al, KERNEL_SEGMENTS
     int 0x13
 
     jc disk_read_error

@@ -4,11 +4,13 @@
 #include "interrupt/idt/idt.h"
 #include "interrupt/isr/isr.h"
 #include "interrupt/irq/irq.h"
+#include "keyboard/keyboard.h"
 
 void kernel_main() {
     idt_init();
     isr_install();
     irq_install();
+    keyboard_driver_install();
 
     kclear_screen();
 
