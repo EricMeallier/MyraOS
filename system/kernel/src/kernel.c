@@ -5,14 +5,18 @@
 #include "interrupt/isr/isr.h"
 #include "interrupt/irq/irq.h"
 #include "keyboard/keyboard.h"
+#include "pmm/pmm.h"
 
 void kernel_main() {
+    kclear_screen();
+
+    pmm_init();
+
     idt_init();
     isr_install();
     irq_install();
+    
     keyboard_driver_install();
-
-    kclear_screen();
 
     kprint("Welcome to ");
     kset_color(COLOR_GREEN);

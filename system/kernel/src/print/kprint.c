@@ -5,7 +5,7 @@
 #include "print/kprint.h"
 
 #include "vga/vga.h"
-#include "vga/vga_colors.h"
+#include "vga/vga_color.h"
 
 #include <stdint.h>
 

@@ -8,14 +8,14 @@
 #include <stdbool.h>
 
 void keyboard_set_scan_code_set(uint8_t set) {
-    // Wait until input buffer is clear
+    // wait until input buffer is clear
     while (inb(0x64) & 0x02);
-    outb(0x60, 0xF0); // Set Scan Code Set
+    outb(0x60, 0xF0); // set scan code set
 
     while (inb(0x64) & 0x02);
     outb(0x60, set);
 
-    // Read ACKs (0xFA expected)
+    // read ACKs (0xFA expected)
     inb(0x60); // ack for 0xF0
     inb(0x60); // ack for 0x02
 }
@@ -25,14 +25,13 @@ void keyboard_driver_install(void) {
 
     irq_install_handler(
         KEYBOARD_IRQ,
-        keyboard_handler
-    );
+        keyboard_handler);
 }
 
 static bool extended = false;
 
 void keyboard_handler(registers_t *regs) {
-    // regs are pushed to the stack from the isr, but uneeded here
+    // regs are pushed to the stack from the isr, but unneeded here
     (void)regs;
 
     const uint8_t scan_code = inb(0x60);
