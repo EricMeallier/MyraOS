@@ -24,7 +24,7 @@ bool cb_write(circular_buffer_t *cb, char data) {
 }
 
 bool cb_read(circular_buffer_t *cb, char *out) {
-    if (cb->capacity == 0 || cb->tail == cb->head) {
+    if (cb->capacity == 0 || cb->count == 0) {
         return false;
     }
 
