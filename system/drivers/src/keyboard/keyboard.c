@@ -32,7 +32,7 @@ void keyboard_driver_install(void) {
 static bool extended = false;
 
 void keyboard_handler(registers_t *regs) {
-    // regs are pushed to the stack from the isr, but uneeded here
+    // regs are pushed to the stack from the isr, but unneeded here
     (void)regs;
 
     const uint8_t scan_code = inb(0x60);
