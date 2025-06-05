@@ -17,8 +17,8 @@ void pmm_init(void) {
     }
 
     // mark the bios part as used
-    for (size_t i = 0; i < BIOS_PART; i++) {
-        bitmap[i] = 1;
+    for (size_t i = 0; i < BIOS_PART / 8; i++) {
+        bitmap[i] = 0xFF;
     }
 
     free_page_count = PAGES_AMOUNT - BIOS_PART;
