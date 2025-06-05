@@ -1,10 +1,10 @@
 #include "vga/vga.h"
 
-#include "vga/vga_color.h"
-#include "io/port_io.h"
-
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+
+#include "io/port_io.h"
+#include "vga/vga_color.h"
 
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE;
@@ -33,7 +33,7 @@ void vga_put_char(const char c) {
     if (check_for_escape_chars(c, cursor_pos)) {
         return;
     }
-        
+
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
 }
@@ -133,7 +133,7 @@ void vga_write_hex(const uint32_t num) {
 
         if (nibble == 0 && !started && i != 0) {
             // skip leading zeroes
-            continue; 
+            continue;
         }
 
         started = true;
@@ -165,9 +165,7 @@ bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
     return true;
 }
 
-void vga_set_color(const uint8_t new_color) {
-    color = new_color;
-}
+void vga_set_color(const uint8_t new_color) { color = new_color; }
 
 void vga_set_cursor(const uint16_t cursor_pos) {
     outb(0x3D4, 0x0F);
@@ -182,7 +180,7 @@ uint16_t vga_get_cursor(void) {
     outb(0x3D4, 0x0F);
     cursor_pos |= inb(0x3D5);
     outb(0x3D4, 0x0E);
-    cursor_pos |= (uint16_t) inb(0x3D5) << 8;
+    cursor_pos |= (uint16_t)inb(0x3D5) << 8;
 
     return cursor_pos;
 }
@@ -202,4 +200,3 @@ void vga_scroll(const uint8_t lines) {
 
     vga_set_cursor(vga_get_cursor() - VGA_WIDTH * lines);
 }
-

@@ -4,14 +4,12 @@
 
 #include "print/kprint.h"
 
+#include <stdint.h>
+
 #include "vga/vga.h"
 #include "vga/vga_color.h"
 
-#include <stdint.h>
-
-void kprint(const char *str) {
-    vga_write(str);
-}
+void kprint(const char *str) { vga_write(str); }
 
 void kprintln(const char *str) {
     vga_write(str);
@@ -27,9 +25,7 @@ void kprintf(const char *fmt, ...) {
     va_end(argp);
 }
 
-void kclear_screen(void) {
-    vga_clear();
-}
+void kclear_screen(void) { vga_clear(); }
 
 void kset_color(const color_t color) {
     uint8_t vga_color;

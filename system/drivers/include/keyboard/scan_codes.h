@@ -80,4 +80,4 @@ typedef enum scan_code_t {
     KEY_F7 = 0x83,
 } scan_code_t;
 
-#endif // SCAN_CODES_H
+#endif  // SCAN_CODES_H

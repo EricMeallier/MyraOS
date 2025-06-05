@@ -16,7 +16,7 @@ extern void (*const isr_stubs[ISR_EXCEPTION_AMOUNT])(void);
 extern void isr_handler(const registers_t* regs);
 
 // error messages
-extern const char *exception_messages[ISR_EXCEPTION_AMOUNT];
+extern const char* exception_messages[ISR_EXCEPTION_AMOUNT];
 
 // install
 extern void isr_install(void);
@@ -55,4 +55,4 @@ extern void _isr29();
 extern void _isr30();
 extern void _isr31();
 
-#endif // ISR_H
+#endif  // ISR_H

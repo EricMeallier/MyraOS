@@ -1,11 +1,11 @@
 #include <stdbool.h>
 
-#include "print/kprint.h"
 #include "interrupt/idt/idt.h"
-#include "interrupt/isr/isr.h"
 #include "interrupt/irq/irq.h"
+#include "interrupt/isr/isr.h"
 #include "keyboard/keyboard.h"
 #include "pmm/pmm.h"
+#include "print/kprint.h"
 
 void kernel_main() {
     kclear_screen();
@@ -15,7 +15,7 @@ void kernel_main() {
     idt_init();
     isr_install();
     irq_install();
-    
+
     keyboard_driver_install();
 
     kprint("Welcome to ");
@@ -29,7 +29,4 @@ void kernel_main() {
     }
 }
 
-__attribute__((section(".text._start")))
-void _start() {
-    kernel_main();
-}
+__attribute__((section(".text._start"))) void _start() { kernel_main(); }

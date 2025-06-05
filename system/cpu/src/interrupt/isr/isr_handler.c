@@ -1,8 +1,7 @@
-#include "interrupt/isr/isr.h"
-
-#include "print/kprint.h"
-
 #include <stdbool.h>
+
+#include "interrupt/isr/isr.h"
+#include "print/kprint.h"
 
 void isr_handler(const registers_t* regs) {
     kclear_screen();

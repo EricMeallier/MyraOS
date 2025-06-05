@@ -1,31 +1,30 @@
 #include "keyboard/keyboard.h"
 
+#include <stdbool.h>
+
 #include "interrupt/irq/irq.h"
 #include "io/port_io.h"
 #include "keyboard/scan_codes.h"
 #include "vga/vga.h"
 
-#include <stdbool.h>
 
 void keyboard_set_scan_code_set(uint8_t set) {
     // wait until input buffer is clear
     while (inb(0x64) & 0x02);
-    outb(0x60, 0xF0); // set scan code set
+    outb(0x60, 0xF0);  // set scan code set
 
     while (inb(0x64) & 0x02);
     outb(0x60, set);
 
     // read ACKs (0xFA expected)
-    inb(0x60); // ack for 0xF0
-    inb(0x60); // ack for 0x02
+    inb(0x60);  // ack for 0xF0
+    inb(0x60);  // ack for 0x02
 }
 
 void keyboard_driver_install(void) {
     keyboard_set_scan_code_set(KEYBOARD_SET);
 
-    irq_install_handler(
-        KEYBOARD_IRQ,
-        keyboard_handler);
+    irq_install_handler(KEYBOARD_IRQ, keyboard_handler);
 }
 
 static bool extended = false;

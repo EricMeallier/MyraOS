@@ -1,8 +1,9 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+
 
 #define BUFFER_SIZE 256
 
@@ -21,6 +22,6 @@ void cb_init(circular_buffer_t *cb, size_t size);
 bool cb_write(circular_buffer_t *cb, char data);
 
 // read
-bool cb_read(circular_buffer_t *cb, char *out); 
+bool cb_read(circular_buffer_t *cb, char *out);
 
-#endif // CIRCULAR_BUFFER_H
+#endif  // CIRCULAR_BUFFER_H

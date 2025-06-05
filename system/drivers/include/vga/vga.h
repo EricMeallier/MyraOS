@@ -1,10 +1,10 @@
 #ifndef VGA_H
 #define VGA_H
 
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdint.h>
 
-#define VGA_VIDEO_MEMORY (uint16_t*) 0xB8000
+#define VGA_VIDEO_MEMORY (uint16_t *)0xB8000
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -37,4 +37,4 @@ uint16_t vga_get_cursor(void);
 // scroll
 void vga_scroll(uint8_t lines);
 
-#endif // VGA_H
+#endif  // VGA_H

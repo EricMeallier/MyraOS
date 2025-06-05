@@ -44,7 +44,7 @@ void* pmm_alloc_page(void) {
                 }
             }
         }
-    } 
+    }
 
     return NULL;
 }
@@ -62,9 +62,7 @@ void pmm_free_page(void *addr) {
     }
 }
 
-size_t pmm_get_free_page_amount(void) {
-    return free_page_count;
-}
+size_t pmm_get_free_page_amount(void) { return free_page_count; }
 
 static inline void set_bit(const size_t bit) {
     size_t bitmap_index = bit / 8;

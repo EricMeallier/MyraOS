@@ -7,4 +7,4 @@ typedef enum vga_color_t {
     VGA_COLOR_RED = 0x0C
 } vga_color_t;
 
-#endif // VGA_COLORS_H
+#endif  // VGA_COLORS_H

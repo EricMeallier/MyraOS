@@ -41,16 +41,17 @@ typedef enum idt_flags {
 } idt_flags;
 
 typedef struct {
-    uint32_t ds; // manual
-    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax; // pusha
-    uint32_t interrupt, error; // manual/automatic
-    uint32_t eip, cs, eflags, esp, ss; // CPU pushed
+    uint32_t ds;                                          // manual
+    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax;  // pusha
+    uint32_t interrupt, error;                            // manual/automatic
+    uint32_t eip, cs, eflags, esp, ss;                    // CPU pushed
 } __attribute__((packed)) registers_t;
 
 // idt setup
 void _idt_load(idt_descriptor_t* idt_descriptor);
 
-void idt_set_gate(uint8_t index, uint32_t base, uint16_t segment, uint8_t flags);
+void idt_set_gate(uint8_t index, uint32_t base, uint16_t segment,
+                  uint8_t flags);
 
 void idt_init(void);
 
@@ -58,4 +59,4 @@ void idt_init(void);
 extern idt_entry_t idt[IDT_SIZE];
 extern idt_descriptor_t idt_descriptor;
 
-#endif //IDT_H
+#endif  // IDT_H

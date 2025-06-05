@@ -19,4 +19,4 @@ extern void keyboard_driver_install(void);
 // handler
 extern void keyboard_handler(registers_t* regs);
 
-#endif // KEYBOARD_H
+#endif  // KEYBOARD_H
