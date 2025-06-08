@@ -1,5 +1,6 @@
 #include "vmm/vmm.h"
 
+#include "panic/kpanic.h"
 #include "pmm/pmm.h"
 
 #define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))
@@ -41,8 +42,7 @@ void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags)
     if (kernel_page_directory->entries[dir_index] == 0) {
         page_table_t* new_page_table = (page_table_t*) pmm_alloc_page();
         if (new_page_table == NULL) {
-            // TODO: add kpanic in the future
-            return;
+            kpanic("Out of memory while creating page table");
         }
 
         for (size_t i = 0; i < PAGE_ENTRIES; i++) {
