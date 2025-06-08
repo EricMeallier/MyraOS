@@ -4,9 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TOTAL_MEMORY (1024 * 1024 * 1024)        // 1 GB
-#define PAGE_SIZE 4096                           // 4 KB
-#define PAGES_AMOUNT (TOTAL_MEMORY / PAGE_SIZE)  // 262,144
+#include "constants/mem_constants.h"
 
 #define BITMAP_SIZE PAGES_AMOUNT / 8
 

@@ -17,7 +17,7 @@ void pmm_init(void) {
     }
 
     // mark the bios part as used
-    for (size_t i = 0; i < BIOS_PART / 8; i++) {
+    for (size_t i = 0; i < BIOS_PART / BYTE_SIZE; i++) {
         bitmap[i] = 0xFF;
     }
 
@@ -32,8 +32,8 @@ void* pmm_alloc_page(void) {
     for (size_t i = BIOS_PART; i < BITMAP_SIZE; i++) {
         // check if at least 1 is free (set to 0)
         if (bitmap[i] < 0xFF) {
-            for (size_t j = 0; j < 8; j++) {
-                size_t bit_index = i * 8 + j;
+            for (size_t j = 0; j < BYTE_SIZE; j++) {
+                size_t bit_index = i * BYTE_SIZE + j;
 
                 // check if page is free
                 if (!test_bit(bit_index)) {
@@ -65,8 +65,8 @@ void pmm_free_page(void *addr) {
 size_t pmm_get_free_page_amount(void) { return free_page_count; }
 
 static inline void set_bit(const size_t bit) {
-    size_t bitmap_index = bit / 8;
-    size_t bit_index = bit % 8;
+    size_t bitmap_index = bit / BYTE_SIZE;
+    size_t bit_index = bit % BYTE_SIZE;
 
     uint8_t mask = 1 << bit_index;
 
@@ -74,8 +74,8 @@ static inline void set_bit(const size_t bit) {
 }
 
 static inline void clear_bit(const size_t bit) {
-    size_t bitmap_index = bit / 8;
-    size_t bit_index = bit % 8;
+    size_t bitmap_index = bit / BYTE_SIZE;
+    size_t bit_index = bit % BYTE_SIZE;
 
     uint8_t mask = ~(1 << bit_index);
 
@@ -83,8 +83,8 @@ static inline void clear_bit(const size_t bit) {
 }
 
 static inline bool test_bit(const size_t bit) {
-    size_t bitmap_index = bit / 8;
-    size_t bit_index = bit % 8;
+    size_t bitmap_index = bit / BYTE_SIZE;
+    size_t bit_index = bit % BYTE_SIZE;
 
     return (bitmap[bitmap_index] >> bit_index) & 1;
 }

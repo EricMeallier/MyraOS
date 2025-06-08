@@ -6,11 +6,13 @@
 #include "keyboard/keyboard.h"
 #include "pmm/pmm.h"
 #include "print/kprint.h"
+#include "vmm/vmm.h"
 
 void kernel_main() {
     kclear_screen();
 
     pmm_init();
+    vmm_init();
 
     idt_init();
     isr_install();
