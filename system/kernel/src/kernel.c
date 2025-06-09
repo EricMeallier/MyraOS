@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#include "heap/heap.h"
 #include "interrupt/idt/idt.h"
 #include "interrupt/irq/irq.h"
 #include "interrupt/isr/isr.h"
@@ -13,6 +14,8 @@ void kernel_main() {
 
     pmm_init();
     vmm_init();
+
+    heap_init(HEAP_START_ADDR, HEAP_SIZE);
 
     idt_init();
     isr_install();

@@ -25,6 +25,9 @@ SECTIONS {
         *(COMMON)
         *(.bss*)
     }
+
+    . = ALIGN(0x1000);
+    _end = .;
     
     /DISCARD/ : {
         *(.eh_frame)
