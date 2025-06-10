@@ -13,7 +13,9 @@ extern volatile uint16_t *video_memory;
 extern volatile uint8_t color;
 
 // clear
-void vga_clear(void);
+void vga_clear_screen(void);
+
+void vga_clear(size_t n);
 
 // write
 void vga_put_char(const char c);

@@ -25,7 +25,9 @@ void kprintf(const char *fmt, ...) {
     va_end(argp);
 }
 
-void kclear_screen(void) { vga_clear(); }
+void kclear_screen(void) { vga_clear_screen(); }
+
+void kclear(size_t n) { vga_clear(n); }
 
 void kset_color(const color_t color) {
     uint8_t vga_color;

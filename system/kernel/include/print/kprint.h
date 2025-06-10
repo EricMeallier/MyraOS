@@ -6,6 +6,7 @@
 #define KPRINT_H
 
 #include <stdarg.h>
+#include <stddef.h>
 
 typedef enum color_t { COLOR_WHITE, COLOR_GREEN, COLOR_RED } color_t;
 
@@ -16,8 +17,10 @@ void kprintln(const char *str);
 
 void kprintf(const char *str, ...);
 
-// clear screen
+// clear
 void kclear_screen(void);
+
+void kclear(size_t n);
 
 // set color
 void kset_color(const color_t color);

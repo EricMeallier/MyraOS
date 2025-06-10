@@ -11,7 +11,7 @@ volatile uint8_t color = VGA_COLOR_WHITE;
 
 bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos);
 
-void vga_clear(void) {
+void vga_clear_screen(void) {
     const uint16_t blank = ' ' | color << 8;
 
     for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
@@ -19,6 +19,16 @@ void vga_clear(void) {
     }
 
     vga_set_cursor(0);
+}
+
+void vga_clear(size_t n) {
+    const uint16_t blank = ' ' | color << 8;
+    uint16_t cursor_pos = vga_get_cursor();
+
+    while (n-- && cursor_pos > 0) {
+        vga_set_cursor(--cursor_pos);
+        video_memory[cursor_pos] = blank;
+    }
 }
 
 void vga_put_char(const char c) {
@@ -155,7 +165,7 @@ bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
             cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
             break;
         case '\t':
-            cursor_pos = cursor_pos + 4;
+            cursor_pos += 4 - (cursor_pos % 4);
             break;
         default:
             return false;

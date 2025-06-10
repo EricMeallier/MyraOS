@@ -7,6 +7,7 @@
 #include "keyboard/keyboard.h"
 #include "pmm/pmm.h"
 #include "print/kprint.h"
+#include "shell.h"
 #include "vmm/vmm.h"
 
 void kernel_main() {
@@ -28,6 +29,8 @@ void kernel_main() {
     kprint("MyraOS");
     kset_color(COLOR_WHITE);
     kprintln("!");
+
+    shell_run();
 
     while (true) {
         __asm__ volatile("hlt");
