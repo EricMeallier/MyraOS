@@ -4,24 +4,24 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
 #define BUFFER_SIZE 256
 
 typedef struct circular_buffer_t {
-    char *data;
+    void *data;
+    size_t element_size;
     size_t capacity;
-    size_t count;
-    size_t head;
-    size_t tail;
+    size_t head, tail, count;
 } circular_buffer_t;
 
 // init
-void cb_init(circular_buffer_t *cb, size_t size);
+extern void cb_init(circular_buffer_t* cb, size_t element_size, size_t capacity);
 
 // write
-bool cb_write(circular_buffer_t *cb, char data);
+extern bool cb_write(circular_buffer_t* cb, const void* element);
 
 // read
-bool cb_read(circular_buffer_t *cb, char *out);
+extern bool cb_read(circular_buffer_t* cb, void* out);
+
+extern void* cb_peek(circular_buffer_t* cb);
 
 #endif  // CIRCULAR_BUFFER_H

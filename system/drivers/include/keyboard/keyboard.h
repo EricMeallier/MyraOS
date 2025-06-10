@@ -9,7 +9,9 @@
 
 #include "interrupt/idt/idt.h"
 #include "keyboard/make_codes.h"
+#include "circular_buffer/circular_buffer.h"
 
+#define KEYBOARD_BUFFER_CAPACITY 256
 #define KEYBOARD_SCAN_CODES_SIZE 128
 #define KEYBOARD_IRQ 1
 
@@ -24,10 +26,16 @@ typedef struct key_event_t {
     bool ctrl, shift, alt;
 } key_event_t;
 
+// buffer
+extern circular_buffer_t keyboard_buffer;
+
 // install
 extern void keyboard_driver_install(void);
 
 // handler
 extern void keyboard_handler(registers_t* regs);
+
+// buffer
+extern bool keyboard_read_event(key_event_t* out);
 
 #endif  // KEYBOARD_H

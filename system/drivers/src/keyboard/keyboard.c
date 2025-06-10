@@ -4,6 +4,8 @@
 #include "io/port_io.h"
 #include "vga/vga.h"
 
+circular_buffer_t keyboard_buffer;
+
 static bool extended = false;
 
 static uint8_t is_shift_pressed = 0;
@@ -16,6 +18,8 @@ static key_event_t create_key_event(uint8_t scan_code, bool released);
 static void update_modifier_state(uint8_t make_code, bool released);
 
 void keyboard_driver_install(void) {
+    cb_init(&keyboard_buffer, sizeof(key_event_t), KEYBOARD_BUFFER_CAPACITY);
+
     irq_install_handler(KEYBOARD_IRQ, keyboard_handler);
 }
 
@@ -50,20 +54,18 @@ void keyboard_handler(registers_t *regs) {
     }
 
     key_event_t event = create_key_event(scan_code, released);
-
-    // TODO: change to cb
-    if (event.ascii_value >= 32 || event.ascii_value == 10) {
-        vga_put_char(event.ascii_value);
-    } else if (event.ascii_value) {
-        vga_put_char('^');
-        vga_put_char(event.ascii_value + 64);
-    }
+    cb_write(&keyboard_buffer, &event);
 }
 
-static void update_modifier_state(uint8_t make_code, bool released) {
+bool keyboard_read_event(key_event_t *out) {
+    return cb_read(&keyboard_buffer, out);
+}
+
+static void update_modifier_state(uint8_t make_code, bool released)
+{
     if (make_code == KEY_LEFT_SHIFT || make_code == KEY_RIGHT_SHIFT) {
         released ? is_shift_pressed-- : is_shift_pressed++;
-    } else if (make_code == KEY_LEFT_CTRL || (KEY_RIGHT_CTRL && extended)) {
+    } else if (make_code == KEY_LEFT_CTRL || (make_code == KEY_RIGHT_CTRL && extended)) {
         released ? is_ctrl_pressed-- : is_ctrl_pressed++;
     } else if (make_code == KEY_LEFT_ALT) {
         released ? is_alt_pressed-- : is_alt_pressed++; 
