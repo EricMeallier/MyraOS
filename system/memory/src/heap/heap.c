@@ -2,6 +2,8 @@
 
 #include "pmm/pmm.h"
 
+#include "kernel/string.h"
+
 #define GET_METADATA_ADDR(block) ((void*) ((uintptr_t) block + sizeof(heap_block_t)))
 
 heap_block_t* heap_start;
@@ -89,7 +91,82 @@ void kfree(void* ptr) {
             // continue checking for free blocks
             continue;
         }
-
         curr = curr->next;
     }
+}
+
+void* krealloc(void* ptr, size_t size) {
+    if (ptr == NULL) {
+        return kmalloc(size);
+    }
+
+    if (size == 0) {
+        kfree(ptr);
+        return NULL;
+    }
+
+    // align the size to fit 32 bits
+    size = (size + 3) & ~3;
+    heap_block_t* block = (heap_block_t*)((uintptr_t)ptr - sizeof(heap_block_t));
+    heap_block_t* curr = block;
+
+    // split block into two smaller ones
+    if (size < block->size) {
+        size_t prev_size = block->size;
+
+        block->size = size;
+        block = split_block(block, prev_size);
+        
+        return block;
+    }
+
+    size_t blocks_size = 0;
+
+    // check if possible to resize existing block
+    while (curr != NULL && curr->free && blocks_size < size) {
+        blocks_size += curr->size;
+        curr = curr->next;
+    }
+
+    // allocate new block
+    if (blocks_size < size) {
+        kfree(ptr);
+        void* new_ptr = kmalloc(size);
+        kmemcpy(new_ptr, ptr, size);
+
+        return new_ptr;
+    }
+
+    // resize previous block
+    block->size = blocks_size;
+    block->next = curr->next;
+    
+    // split block
+    if (blocks_size > size + sizeof(heap_block_t) + 8) {
+        block = split_block(block, size);
+    }
+
+    block->free = false;
+    return GET_METADATA_ADDR(block);
+}
+
+/*
+Function recieves block and the desired size for the block, and splits block into two.
+Must: block->size > size
+*/
+heap_block_t* split_block(heap_block_t* block, size_t size) {
+    heap_block_t* new_block = (heap_block_t*) ((uintptr_t)block + sizeof(heap_block_t) + size);
+    new_block->size = block->size - size - sizeof(heap_block_t);
+    new_block->free = true;
+    new_block->next = block->next;
+
+    if (new_block->next == NULL) {
+        heap_end = new_block;
+    }
+
+    block->size = size;
+    block->free = false;
+    block->next = new_block; 
+
+    return block;
 }

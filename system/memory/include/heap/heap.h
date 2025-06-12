@@ -23,4 +23,9 @@ void* kmalloc(size_t size);
 
 void kfree(void* ptr);
 
+void* krealloc(void* ptr, size_t size);
+
+// help function
+heap_block_t* split_block(heap_block_t* block, size_t size);
+
 #endif // HEAP_H
