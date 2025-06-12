@@ -3,17 +3,9 @@
 #include "keyboard/keyboard.h"
 #include "print/kprint.h"
 
+#include "kernel/string.h"
+
 #define BACKSPACE 0x8
-
-// TEMP! until we get string.h
-int strcmp(const char* s1, const char* s2) {
-    while (*s1 && (*s1 == *s2)) {
-        s1++;
-        s2++;
-    }
-
-    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
-}
 
 void shell_run(void) {
     char buffer[SHELL_INPUT_BUFFER_SIZE];
@@ -65,11 +57,11 @@ void shell_run(void) {
                     i++;
                 }
 
-                if (strcmp(command, "echo") == 0) {
+                if (kstrcmp(command, "echo") == 0) {
                     kprintln(args);
-                } else if (strcmp(command, "clear") == 0) {
+                } else if (kstrcmp(command, "clear") == 0) {
                     kclear_screen();
-                } else if (strcmp(command, "help") == 0) {
+                } else if (kstrcmp(command, "help") == 0) {
                     kprintln("Commands: echo, clear, help");
                 } else {
                     kprintf("Unknown command: %s\n", buffer);

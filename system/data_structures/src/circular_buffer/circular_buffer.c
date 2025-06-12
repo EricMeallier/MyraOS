@@ -2,15 +2,7 @@
 
 #include "heap/heap.h"
 
-// TEMP! until we get libc
-void *memcpy(void* dest, const void* src, size_t n) {
-    unsigned char *d = dest;
-    const unsigned char* s = src;
-    while (n--) {
-        *d++ = *s++;
-    }
-    return dest;
-}
+#include "kernel/string.h"
 
 void cb_init(circular_buffer_t* cb, size_t element_size, size_t capacity) {
     cb->element_size = element_size;
@@ -25,7 +17,7 @@ bool cb_write(circular_buffer_t* cb, const void* element) {
     }
 
     void *target = (char *)cb->data + cb->head * cb->element_size;
-    memcpy(target, element, cb->element_size);
+    kmemcpy(target, element, cb->element_size);
 
     cb->head = (cb->head + 1) % cb->capacity;
     cb->count++;
@@ -39,7 +31,7 @@ bool cb_read(circular_buffer_t* cb, void* out) {
     }
 
     void *source = (char *)cb->data + cb->tail * cb->element_size;
-    memcpy(out, source, cb->element_size);
+    kmemcpy(out, source, cb->element_size);
 
     cb->tail = (cb->tail + 1) % cb->capacity;
     cb->count--;
