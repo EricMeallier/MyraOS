@@ -1,9 +1,8 @@
 #include "shell.h"
 
 #include "keyboard/keyboard.h"
-#include "print/kprint.h"
-
 #include "kernel/string.h"
+#include "print/kprint.h"
 
 #define BACKSPACE 0x8
 
