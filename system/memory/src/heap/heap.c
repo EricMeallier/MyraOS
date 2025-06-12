@@ -52,18 +52,7 @@ void* kmalloc(size_t size) {
 
     // split the block
     if (curr_block->size > size + sizeof(heap_block_t) + 8) {
-        heap_block_t* new_block = (heap_block_t*) ((uintptr_t)curr_block + sizeof(heap_block_t) + size);
-        new_block->size = curr_block->size - size - sizeof(heap_block_t);
-        new_block->free = true;
-        new_block->next = curr_block->next;
-
-        if (new_block->next == NULL) {
-            heap_end = new_block;
-        }
-
-        curr_block->size = size;
-        curr_block->free = false;
-        curr_block->next = new_block;
+        split_block(curr_block, size);
     }
 
     return GET_METADATA_ADDR(curr_block);
@@ -140,13 +129,16 @@ void* krealloc(void* ptr, size_t size) {
     // resize previous block
     block->size = blocks_size;
     block->next = curr->next;
+
+    if (blocks_size == size) {
+        block->free = false;
+        return GET_METADATA_ADDR(block);
+    }
     
     // split block
     if (blocks_size > size + sizeof(heap_block_t) + 8) {
         block = split_block(block, size);
     }
-
-    block->free = false;
     return GET_METADATA_ADDR(block);
 }
 
