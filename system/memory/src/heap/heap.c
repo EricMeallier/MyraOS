@@ -1,8 +1,7 @@
 #include "heap/heap.h"
 
-#include "pmm/pmm.h"
-
 #include "kernel/string.h"
+#include "pmm/pmm.h"
 
 #define GET_METADATA_ADDR(block) ((void*) ((uintptr_t) block + sizeof(heap_block_t)))
 
