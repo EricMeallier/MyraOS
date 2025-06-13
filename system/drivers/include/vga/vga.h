@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #define VGA_VIDEO_MEMORY (uint16_t *)0xB8000
 
