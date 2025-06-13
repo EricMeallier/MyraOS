@@ -1,9 +1,8 @@
 #include "kernel/stdlib.h"
 
 int atoi(const char* s) {
+    const int INT_MAX = 2147483647, INT_MIN = -2147483647;
     int sign = 1, res = 0, idx = 0;
-
-    int INT_MAX = 2147483647, INT_MIN = -2147483647;
 
     while (s[idx] == ' ') {
         idx++;
@@ -15,12 +14,12 @@ int atoi(const char* s) {
     }
 
     while (s[idx] >= '0' && s[idx] <= '9') {
-        
         if (res > INT_MAX / 10 || (res == INT_MAX / 10 && s[idx] - '0' > 7)) {
             return sign == 1 ? INT_MAX : INT_MIN;
         }
       
         res = 10 * res + (s[idx++] - '0');
     }
+
     return res * sign;
 }
