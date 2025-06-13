@@ -1,9 +1,12 @@
 #include "heap/heap.h"
 
 #include "kernel/string.h"
+#include "assert/kassert.h"
 #include "pmm/pmm.h"
 
 #define GET_METADATA_ADDR(block) ((void*) ((uintptr_t) block + sizeof(heap_block_t)))
+
+static heap_block_t* split_block(heap_block_t* block, size_t size);
 
 heap_block_t* heap_start;
 heap_block_t* heap_end;
@@ -95,6 +98,7 @@ void* krealloc(void* ptr, size_t size) {
 
     // align the size to fit 32 bits
     size = (size + 3) & ~3;
+
     heap_block_t* block = (heap_block_t*)((uintptr_t)ptr - sizeof(heap_block_t));
     heap_block_t* curr = block;
 
@@ -103,24 +107,27 @@ void* krealloc(void* ptr, size_t size) {
         size_t prev_size = block->size;
 
         block->size = size;
-        block = split_block(block, prev_size);
+        split_block(block, size);
         
-        return block;
+        return GET_METADATA_ADDR(block);
     }
 
     size_t blocks_size = 0;
 
-    // check if possible to resize existing block
-    while (curr != NULL && curr->free && blocks_size < size) {
-        blocks_size += curr->size;
-        curr = curr->next;
+    heap_block_t* next = block->next;
+    blocks_size = block->size;
+
+    while (next && next->free && blocks_size < size) {
+        blocks_size += sizeof(heap_block_t) + next->size;
+        next = next->next;
     }
 
     // allocate new block
     if (blocks_size < size) {
         kfree(ptr);
+
         void* new_ptr = kmalloc(size);
-        kmemcpy(new_ptr, ptr, size);
+        kmemcpy(new_ptr, ptr, block->size);
 
         return new_ptr;
     }
@@ -138,15 +145,18 @@ void* krealloc(void* ptr, size_t size) {
     if (blocks_size > size + sizeof(heap_block_t) + 8) {
         block = split_block(block, size);
     }
+    
     return GET_METADATA_ADDR(block);
 }
 
 /*
-Function recieves block and the desired size for the block, and splits block into two.
-Must: block->size > size
+    Function recieves block and the desired size for the block, and splits block into two.
 */
 heap_block_t* split_block(heap_block_t* block, size_t size) {
+    kassert(block->size > size);
+
     heap_block_t* new_block = (heap_block_t*) ((uintptr_t)block + sizeof(heap_block_t) + size);
+    
     new_block->size = block->size - size - sizeof(heap_block_t);
     new_block->free = true;
     new_block->next = block->next;
