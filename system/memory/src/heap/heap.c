@@ -86,7 +86,7 @@ void kfree(void* ptr) {
     }
 }
 
-void* krealloc(void* ptr, size_t size) {
+void* krealloc(void* ptr, size_t size) { 
     if (ptr == NULL) {
         return kmalloc(size);
     }
@@ -104,10 +104,7 @@ void* krealloc(void* ptr, size_t size) {
 
     // split block into two smaller ones
     if (size < block->size) {
-        size_t prev_size = block->size;
-
-        block->size = size;
-        split_block(block, size);
+        block = split_block(block, size);
         
         return GET_METADATA_ADDR(block);
     }
@@ -123,7 +120,7 @@ void* krealloc(void* ptr, size_t size) {
     }
 
     // allocate new block
-    if (blocks_size < size) {
+    if (blocks_size < size) { 
         kfree(ptr);
 
         void* new_ptr = kmalloc(size);
