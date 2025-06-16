@@ -18,8 +18,8 @@ extern void isr_handler(const registers_t* regs);
 // error messages
 extern const char* exception_messages[ISR_EXCEPTION_AMOUNT];
 
-// install
-extern void isr_install(void);
+// init
+extern void isr_init(void);
 
 // isr
 extern void _isr0();

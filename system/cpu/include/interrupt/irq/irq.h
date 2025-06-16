@@ -12,14 +12,20 @@
 #define IRQ_INTERRUPT_OFFSET 32
 
 typedef void (*irq_call_t)(registers_t*);
+
 extern irq_call_t irq_routines[IRQ_SIZE];
 
 extern void (*const irq_stubs[IRQ_SIZE])(void);
 
+// init
 extern void irq_install_handler(int irq, void (*handler)(registers_t* regs));
+
+extern void irq_init(void);
+
+// handler
 extern void irq_handler(registers_t* regs);
+
 extern void irq_remap(void);
-extern void irq_install(void);
 
 extern void _irq0();
 extern void _irq1();

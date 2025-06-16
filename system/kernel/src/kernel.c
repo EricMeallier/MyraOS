@@ -20,8 +20,8 @@ void kernel_main() {
     heap_init(HEAP_START_ADDR, HEAP_SIZE);
 
     idt_init();
-    isr_install();
-    irq_install();
+    isr_init();
+    irq_init();
 
     keyboard_driver_install();
 

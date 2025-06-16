@@ -51,7 +51,7 @@ void irq_remap() {
     outb(0xA1, 0x00); 
 }
 
-void irq_install() {
+void irq_init() {
     irq_remap();
 
     for (size_t i = IRQ_INTERRUPT_OFFSET; i < IRQ_INTERRUPT_OFFSET + IRQ_SIZE; i++) {

@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void isr_install(void) {
+void isr_init(void) {
     for (size_t i = 0; i < ISR_EXCEPTION_AMOUNT; i++) {
         idt_set_gate(
             i,
