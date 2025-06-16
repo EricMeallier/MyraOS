@@ -5,6 +5,7 @@
 #include "interrupt/irq/irq.h"
 #include "interrupt/isr/isr.h"
 #include "keyboard/keyboard.h"
+#include "block_device/pata.h"
 #include "pmm/pmm.h"
 #include "print/print.h"
 #include "shell.h"
@@ -23,6 +24,8 @@ void kernel_main() {
     irq_install();
 
     keyboard_driver_install();
+
+    pata_init();
 
     kprint("Welcome to ");
     kset_color(COLOR_GREEN);
