@@ -2,8 +2,8 @@
 // Created by dvir on 5/19/25.
 //
 
-#ifndef KPRINT_H
-#define KPRINT_H
+#ifndef PRINT_H
+#define PRINT_H
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -25,4 +25,4 @@ void kclear(size_t n);
 // set color
 void kset_color(const color_t color);
 
-#endif  // KPRINT_H
+#endif  // PRINT_H

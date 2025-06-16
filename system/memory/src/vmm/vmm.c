@@ -1,6 +1,6 @@
 #include "vmm/vmm.h"
 
-#include "panic/kpanic.h"
+#include "panic/panic.h"
 #include "pmm/pmm.h"
 
 #define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))

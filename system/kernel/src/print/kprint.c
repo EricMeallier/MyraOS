@@ -2,7 +2,7 @@
 // Created by dvir on 5/19/25.
 //
 
-#include "print/kprint.h"
+#include "print/print.h"
 
 #include <stdint.h>
 

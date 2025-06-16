@@ -1,9 +1,9 @@
-#include "panic/kpanic.h"
+#include "panic/panic.h"
 
 #include <stdbool.h>
 
 #include "interrupt/isr/isr.h"
-#include "print/kprint.h"
+#include "print/print.h"
 
 void kpanic(const char* message) {
     kclear_screen();

@@ -1,8 +1,7 @@
 #include "circular_buffer/circular_buffer.h"
 
 #include "heap/heap.h"
-
-#include "kernel/string.h"
+#include "libc_kernel/string.h"
 
 void cb_init(circular_buffer_t* cb, size_t element_size, size_t capacity) {
     cb->element_size = element_size;

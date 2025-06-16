@@ -6,7 +6,7 @@
 #include "interrupt/isr/isr.h"
 #include "keyboard/keyboard.h"
 #include "pmm/pmm.h"
-#include "print/kprint.h"
+#include "print/print.h"
 #include "shell.h"
 #include "vmm/vmm.h"
 

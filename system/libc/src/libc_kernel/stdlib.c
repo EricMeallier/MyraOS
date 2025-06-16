@@ -1,4 +1,4 @@
-#include "kernel/stdlib.h"
+#include "libc_kernel/stdlib.h"
 
 int atoi(const char* s) {
     const int INT_MAX = 2147483647, INT_MIN = -2147483647;

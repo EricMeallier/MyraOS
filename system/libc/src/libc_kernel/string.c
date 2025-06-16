@@ -1,4 +1,4 @@
-#include "kernel/string.h"
+#include "libc_kernel/string.h"
 
 void* kmemcpy(void* dest, const void* src, size_t size) {
     char *csrc = (char*)src; 

@@ -1,7 +1,7 @@
-#ifndef KASSERT_H
-#define KASSERT_H
+#ifndef ASSERT_H
+#define ASSERT_H
 
-#include "panic/kpanic.h"
+#include "panic/panic.h"
 
 #define STRINGIFY_STEP_2(x) #x
 #define STRINGIFY(x) STRINGIFY_STEP_2(x)
@@ -17,4 +17,4 @@
     } while (0)
 #endif // NDEBUG
 
-#endif // KASSERT_H
+#endif // ASSERT_H
