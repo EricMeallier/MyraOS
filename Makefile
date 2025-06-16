@@ -13,6 +13,7 @@ KERNEL_BIN     = build/kernel.bin
 KERNEL_ELF     = build/kernel.elf
 LINKER_SCRIPT  = linker.ld
 FLOPPY_IMG     = build/floppy.img
+HDD_IMG        = build/hdd.img
 
 # === Source discovery ===
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
@@ -29,6 +30,7 @@ RM          = rm -rf
 MKDIR       = mkdir -p
 FILE_SIZE   = @if [ $$(wc -c < "$(BOOT_BIN)") -ne 512 ]; then echo "Error: Bootloader must be 512 bytes"; exit 1; fi
 CREATE_IMG  = dd if=/dev/zero of="$(FLOPPY_IMG)" bs=512 count=2880 status=none
+CREATE_HDD  = dd if=/dev/zero of="$(HDD_IMG)" bs=512 count=32768 status=none
 DD_BOOT     = dd if="$(BOOT_BIN)" of="$(FLOPPY_IMG)" bs=512 count=1 conv=notrunc status=none
 DD_KERNEL   = dd if="$(KERNEL_BIN)" of="$(FLOPPY_IMG)" bs=512 seek=1 conv=notrunc status=none
 
@@ -64,7 +66,7 @@ $(KERNEL_BIN): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 $(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 	@echo [LD] Linking kernel ELF (with symbols)...
 	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(patsubst %,'%',$(OBJ_FILES) $(ASM_OBJ_FILES)) -nostdlib -m elf_i386
-	
+
 # Floppy image
 $(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
 	@echo [IMG] Creating floppy image...
@@ -73,15 +75,25 @@ $(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
 	@$(DD_BOOT)
 	@$(DD_KERNEL)
 
+# HDD image (32K sectors = 16MB)
+$(HDD_IMG):
+	@echo [HDD] Creating hard disk image...
+	@$(MKDIR) build
+	@$(CREATE_HDD)
+
 # Run in QEMU normally
-run: $(FLOPPY_IMG)
+run: $(FLOPPY_IMG) $(HDD_IMG)
 	@echo [QEMU] Launching OS...
-	@$(QEMU) -drive format=raw,file="$(FLOPPY_IMG)",if=floppy
+	@$(QEMU) \
+		-drive format=raw,file="$(FLOPPY_IMG)",if=floppy \
+		-drive format=raw,file="$(HDD_IMG)",index=0,if=ide
 
 # Run in QEMU with GDB support
-debug: $(FLOPPY_IMG) $(KERNEL_ELF)
+debug: $(FLOPPY_IMG) $(HDD_IMG) $(KERNEL_ELF)
 	@echo [QEMU] Launching QEMU in GDB mode...
-	@$(QEMU) -s -S -drive format=raw,file="$(FLOPPY_IMG)",if=floppy
+	@$(QEMU) -s -S \
+		-drive format=raw,file="$(FLOPPY_IMG)",if=floppy \
+		-drive format=raw,file="$(HDD_IMG)",index=0,if=ide
 
 # Clean build
 clean:
