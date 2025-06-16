@@ -60,12 +60,12 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm
 # Link raw kernel binary (used for floppy)
 $(KERNEL_BIN): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 	@echo [LD] Linking kernel BIN...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(patsubst %,'%',$(OBJ_FILES) $(ASM_OBJ_FILES)) -nostdlib -m elf_i386
+	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
 
 # Link ELF kernel (for debugging with symbols)
 $(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
-	@echo [LD] Linking kernel ELF (with symbols)...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(patsubst %,'%',$(OBJ_FILES) $(ASM_OBJ_FILES)) -nostdlib -m elf_i386
+	@echo [LD] Linking kernel ELF \(with symbols\)...
+	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
 
 # Floppy image
 $(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
