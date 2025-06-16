@@ -8,11 +8,14 @@
 #include "block_device/pata.h"
 #include "pmm/pmm.h"
 #include "print/print.h"
+#include "rtc/rtc.h"
 #include "shell.h"
 #include "vmm/vmm.h"
 
 void kernel_main() {
     kclear_screen();
+
+    rtc_init();
 
     pmm_init();
     vmm_init();
@@ -31,7 +34,14 @@ void kernel_main() {
     kset_color(COLOR_GREEN);
     kprint("MyraOS");
     kset_color(COLOR_WHITE);
-    kprintln("!");
+    kprintln(" v0.1");
+
+    datetime_t dt = rtc_get_system_datetime();
+    kprintf("Time: %d:%d:%d, Date: %d/%d/%d (Weekday: %d)\n",
+        dt.hour, dt.minute, dt.second,
+        dt.day, dt.month, dt.year,
+        dt.weekday
+    );
 
     shell_run();
 
