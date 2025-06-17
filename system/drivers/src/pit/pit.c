@@ -1,7 +1,7 @@
 #include "pit/pit.h"
 
 #include "io/port_io.h"
-#include "irq/irq.h"
+#include "interrupt/irq/irq.h"
 
 #define PIT_CHANNEL_0_DATA_PORT 0x40
 #define PIT_CONTROL_PORT 0x43
@@ -19,6 +19,9 @@ void pit_init(void) {
 }
 
 void pit_handler(registers_t* regs) {
+    // regs are pushed to the stack from the isr, but unneeded here
+    (void) regs;
+
     tick_count++;
 }
 
