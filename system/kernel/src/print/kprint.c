@@ -32,16 +32,25 @@ void kclear(size_t n) { vga_clear(n); }
 void kset_color(const color_t color) {
     uint8_t vga_color;
 
-    if (color == COLOR_WHITE) {
-        vga_color = VGA_COLOR_WHITE;
-    }
-
-    if (color == COLOR_GREEN) {
-        vga_color = VGA_COLOR_GREEN;
-    }
-
-    if (color == COLOR_RED) {
-        vga_color = VGA_COLOR_RED;
+    switch (color) {
+        case COLOR_WHITE:
+            vga_color = VGA_COLOR_WHITE;
+            break;
+        case COLOR_YELLOW:
+            vga_color = VGA_COLOR_YELLOW;
+            break;
+        case COLOR_GREEN:
+            vga_color = VGA_COLOR_GREEN;
+            break;
+        case COLOR_BLUE:
+            vga_color = VGA_COLOR_BLUE;
+            break;
+        case COLOR_RED:
+            vga_color = VGA_COLOR_RED;
+            break;
+        default:
+            vga_color = VGA_COLOR_WHITE;
+            break;
     }
 
     vga_set_color(vga_color);

@@ -9,7 +9,7 @@
 static block_device_t* block_drivers[BLOCK_DRIVERS_MAX_AMOUNT] = { 0 };
 static uint8_t block_driver_amount = 0;
 
-void block_register_device(const block_device_t* device) {
+void block_register_device(block_device_t* device) {
     if (block_driver_amount == BLOCK_DRIVERS_MAX_AMOUNT) {
         klog_info("Too many block drivers registered!\n");
         return;

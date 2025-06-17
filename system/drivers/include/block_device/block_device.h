@@ -14,7 +14,7 @@ typedef struct block_device_t {
     void* driver_data;
 } block_device_t;
 
-void block_register_device(const block_device_t* device);
+void block_register_device(block_device_t* device);
 
 const block_device_t* block_get_device(const char* name);
 

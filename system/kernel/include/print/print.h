@@ -8,7 +8,13 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-typedef enum color_t { COLOR_WHITE, COLOR_GREEN, COLOR_RED } color_t;
+typedef enum color_t { 
+    COLOR_WHITE,
+    COLOR_YELLOW,
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
+} color_t;
 
 // print
 void kprint(const char *str);

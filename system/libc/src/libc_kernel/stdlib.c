@@ -26,7 +26,7 @@ int katoi(const char* s) {
     return res * sign;
 }
 
-void kitoa(int value, char* str, int base) {
+char* kitoa(int value, char* str, int base) {
     char* ptr = str;
     char* ptr1 = str;
     char tmp_char;
@@ -35,7 +35,8 @@ void kitoa(int value, char* str, int base) {
     if (value == 0) {
         *ptr++ = '0';
         *ptr = '\0';
-        return;
+        
+        return str;
     }
 
     bool is_negative = false;
@@ -62,4 +63,6 @@ void kitoa(int value, char* str, int base) {
         *ptr-- = *ptr1;
         *ptr1++ = tmp_char;
     }
+
+    return str;
 }
