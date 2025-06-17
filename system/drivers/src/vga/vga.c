@@ -5,6 +5,8 @@
 
 #include "io/port_io.h"
 #include "vga/vga_color.h"
+#include "libc_kernel/stdlib.h"
+#include "libc_kernel/string.h"
 
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE;
@@ -57,46 +59,65 @@ void vga_write(const char *str) {
 void vga_write_format(const char *fmt, const va_list argp) {
     while (*fmt) {
         if (*fmt != '%') {
-            vga_put_char(*fmt);
-        } else {
+            vga_put_char(*fmt++);
+            continue;
+        }
+
+        fmt++; // Skip '%'
+
+        bool zero_pad = false;
+        int pad_width = 0;
+
+        if (*fmt == '0') {
+            zero_pad = true;
             fmt++;
+        }
 
-            switch (*fmt) {
-                case 'd': {
-                    int val = va_arg(argp, int);
-                    vga_write_int(val);
+        // Parse width digits (e.g., 2 in %02d)
+        while (*fmt >= '0' && *fmt <= '9') {
+            pad_width = pad_width * 10 + (*fmt - '0');
+            fmt++;
+        }
 
-                    break;
-                }
-                case 's': {
-                    const char *str = va_arg(argp, const char *);
-                    vga_write(str);
+        char buf[32];
 
-                    break;
-                }
-                case 'c': {
-                    char c = (char)va_arg(argp, int);
-                    vga_put_char(c);
-
-                    break;
-                }
-                case 'x': {
-                    uint32_t val = va_arg(argp, uint32_t);
-                    vga_write_hex(val);
-
-                    break;
-                }
-                case '%': {
-                    vga_put_char('%');
-
-                    break;
-                }
-                default: {
-                    vga_put_char('%');
-                    vga_put_char(*fmt);
-
-                    break;
-                }
+        switch (*fmt) {
+            case 'd': {
+                int val = va_arg(argp, int);
+                kitoa(val, buf, 10);
+                int len = kstrlen(buf);
+                for (int i = 0; i < pad_width - len; i++)
+                    vga_put_char(zero_pad ? '0' : ' ');
+                vga_write(buf);
+                break;
+            }
+            case 'x': {
+                uint32_t val = va_arg(argp, uint32_t);
+                kitoa(val, buf, 16);
+                int len = kstrlen(buf);
+                for (int i = 0; i < pad_width - len; i++)
+                    vga_put_char(zero_pad ? '0' : ' ');
+                vga_write(buf);
+                break;
+            }
+            case 's': {
+                const char *str = va_arg(argp, const char *);
+                vga_write(str);
+                break;
+            }
+            case 'c': {
+                char c = (char)va_arg(argp, int);
+                vga_put_char(c);
+                break;
+            }
+            case '%': {
+                vga_put_char('%');
+                break;
+            }
+            default: {
+                vga_put_char('%');
+                vga_put_char(*fmt);
+                break;
             }
         }
 
