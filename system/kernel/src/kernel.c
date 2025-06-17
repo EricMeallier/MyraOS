@@ -6,6 +6,7 @@
 #include "interrupt/isr/isr.h"
 #include "keyboard/keyboard.h"
 #include "block_device/pata.h"
+#include "pit/pit.h"
 #include "pmm/pmm.h"
 #include "print/print.h"
 #include "rtc/rtc.h"
@@ -15,16 +16,16 @@
 void kernel_main() {
     kclear_screen();
 
-    rtc_init();
-
     pmm_init();
     vmm_init();
-
     heap_init(HEAP_START_ADDR, HEAP_SIZE);
 
     idt_init();
     isr_init();
     irq_init();
+
+    pit_init();
+    rtc_init();
 
     keyboard_driver_install();
 
