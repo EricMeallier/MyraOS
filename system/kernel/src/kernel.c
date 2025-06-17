@@ -37,11 +37,11 @@ void kernel_main() {
     kprintln(" v0.1");
 
     datetime_t dt = rtc_get_system_datetime();
-    kprintf("Time: %d:%d:%d, Date: %d/%d/%d (Weekday: %d)\n",
-        dt.hour, dt.minute, dt.second,
-        dt.day, dt.month, dt.year,
-        dt.weekday
-    );
+    kprintf("Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n",
+            dt.hour, dt.minute, dt.second,
+            dt.day, dt.month, dt.year,
+            dt.weekday
+        );
 
     shell_run();
 
