@@ -36,7 +36,35 @@ typedef struct superblock_t {
     uint16_t uid;
     uint16_t gid;
 
-    char padding[SUPERBLOCK_SIZE - 66];
+    // Extended features
+    uint32_t first_inode;
+    
+    uint16_t inode_size;
+    uint16_t superblock_group;
+    
+    uint32_t optional_feature;
+    uint32_t required_feature;
+    uint32_t readonly_feature;
+
+    char fs_id[16];
+    char vol_name[16];
+    char last_mount_path[64];
+
+    uint32_t compression_method;
+
+    uint8_t file_pre_alloc_blocks;
+    uint8_t dir_pre_alloc_blocks;
+    
+    uint16_t unused;
+
+    char journal_id[16];
+
+    uint32_t journal_inode;
+    uint32_t journal_device;
+    uint32_t orphan_head;
+    // Extended features end
+
+    char padding[SUPERBLOCK_SIZE - 236];
 } __attribute__((packed)) superblock_t;
 
 typedef struct inode_t {
@@ -66,6 +94,7 @@ typedef struct inode_t {
         uint32_t file_size;
     };
     uint32_t block_fragment_addr;
+
     char os_specific_value_2[12];
 } __attribute__((packed)) inode_t;
 
@@ -81,9 +110,11 @@ typedef struct block_group_t {
     uint32_t block_bitmap;
     uint32_t inode_bitmap;
     uint32_t inode_table;
+
     uint16_t free_blocks;
     uint16_t free_inodes;
     uint16_t dir_count;
+    
     char unused[14];
 } __attribute__((packed)) block_group_t;
 
