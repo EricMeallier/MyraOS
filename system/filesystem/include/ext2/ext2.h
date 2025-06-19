@@ -1,10 +1,14 @@
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#ifndef EXT2_H
+#define EXT2_H
 
 #include <stdint.h>
 
 #define EXT2_DIRECT_BLOCKS 12
-#define SUPERBLOCK_SIZE 1024
+#define EXT2_NAME_LEN 255
+
+#define EXT2_SUPERBLOCK_SIZE 1024
+#define EXT2_SUPERBLOCK_OFFSET 1024
+#define EXT2_SUPERBLOCK_SIGNATURE 0xEF53
 
 typedef struct superblock_t {
     uint32_t total_inodes;
@@ -62,13 +66,10 @@ typedef struct superblock_t {
     uint32_t journal_inode;
     uint32_t journal_device;
     uint32_t orphan_head;
-    // Extended features end
-
-    char padding[SUPERBLOCK_SIZE - 236];
 } __attribute__((packed)) superblock_t;
 
 typedef struct inode_t {
-    uint16_t permissions;
+    uint16_t mode;
     uint16_t uid;
 
     uint32_t size;
@@ -100,22 +101,31 @@ typedef struct inode_t {
 
 typedef struct dir_entry_t {
     uint32_t inode;
-    uint16_t size;
+    uint16_t rec_len;
     uint8_t name_len;
     uint8_t type;
     char name[];
 } __attribute__((packed)) dir_entry_t;
 
-typedef struct block_group_t {
+typedef struct ext2_group_desc_t {
     uint32_t block_bitmap;
     uint32_t inode_bitmap;
     uint32_t inode_table;
 
     uint16_t free_blocks;
     uint16_t free_inodes;
-    uint16_t dir_count;
+    uint16_t dir_count; 
     
-    char unused[14];
+    uint16_t unused_pad;
+    uint16_t block_bitmap_csum;
+    uint16_t inode_bitmap_csum;
+    uint16_t unused_pad2;
+
+    uint32_t reserved;
 } __attribute__((packed)) block_group_t;
 
-#endif // FILESYSTEM_H
+void ext2_read_superblock();
+
+void ext2_read_group_desc();
+
+#endif // EXT2_H
