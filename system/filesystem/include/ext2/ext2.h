@@ -134,8 +134,6 @@ typedef struct ext2_fs_t {
     block_device_t* device;
 } ext2_fs_t;
 
-void ext2_read_superblock(ext2_fs_t* fs, block_device_t* device);
-
-void ext2_read_group_desc(ext2_fs_t* fs);
+void ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
 #endif // EXT2_H
