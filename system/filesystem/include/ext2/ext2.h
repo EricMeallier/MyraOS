@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "block_device/block_device.h"
+
 #define EXT2_DIRECT_BLOCKS 12
 #define EXT2_NAME_LEN 255
 
@@ -107,7 +109,7 @@ typedef struct dir_entry_t {
     char name[];
 } __attribute__((packed)) dir_entry_t;
 
-typedef struct ext2_group_desc_t {
+typedef struct block_group_desc_t {
     uint32_t block_bitmap;
     uint32_t inode_bitmap;
     uint32_t inode_table;
@@ -122,10 +124,18 @@ typedef struct ext2_group_desc_t {
     uint16_t unused_pad2;
 
     uint32_t reserved;
-} __attribute__((packed)) block_group_t;
+} __attribute__((packed)) block_group_desc_t;
 
-void ext2_read_superblock();
+typedef struct ext2_fs_t {
+    superblock_t superblock;
+    block_group_desc_t* group_desc;
+    uint32_t block_size;
 
-void ext2_read_group_desc();
+    block_device_t* device;
+} ext2_fs_t;
+
+void ext2_read_superblock(ext2_fs_t* fs, block_device_t* device);
+
+void ext2_read_group_desc(ext2_fs_t* fs);
 
 #endif // EXT2_H
