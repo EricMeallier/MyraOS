@@ -24,7 +24,7 @@ void block_register_device(block_device_t* device) {
     block_driver_amount++;
 }
 
-const block_device_t *block_get_device(const char *name) {
+block_device_t *block_get_device(const char *name) {
     for (size_t i = 0; i < BLOCK_DRIVERS_MAX_AMOUNT; i++) {
         if (block_drivers[i] && kstrcmp(block_drivers[i]->name, name) == 0) {
             return block_drivers[i];

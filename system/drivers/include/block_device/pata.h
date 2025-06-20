@@ -14,10 +14,10 @@ typedef struct pata_device_t {
 
 void pata_init(void);
 
-int pata_read_block(uint32_t lba, uint8_t* buffer, pata_device_t* driver_data);
+int pata_read_sector(uint32_t lba, uint8_t* buffer, pata_device_t* driver_data);
 
-int pata_write_block(uint32_t lba, const uint8_t* buffer, pata_device_t* driver_data);
+int pata_write_sector(uint32_t lba, const uint8_t* buffer, pata_device_t* driver_data);
 
-uint32_t pata_get_block_count(pata_device_t* driver_data);
+uint32_t pata_get_sector_count(pata_device_t* driver_data);
 
 #endif // PATA_H

@@ -25,16 +25,32 @@
 #define ATA_CMD_WRITE_SECTORS  0x30
 #define ATA_CMD_FLUSH_CACHE    0xE7
 
-static int pata_read_block_wrapper(uint32_t lba, void* buffer, void* driver_data) {
-    return pata_read_block(lba, (uint8_t*)buffer, (pata_device_t*)driver_data);
+static int pata_read_multiple_sectors(uint32_t lba, uint32_t count, void* buffer, void* driver_data) {
+    for (size_t i = 0; i < count; i++) {
+        int finish_code = pata_read_sector(lba + i, (uint8_t*)buffer + BLOCK_SECTOR_SIZE * i, (pata_device_t*)driver_data);
+
+        if (finish_code < 0) {
+            return finish_code;
+        }
+    }
+
+    return 0;
 }
 
-static int pata_write_block_wrapper(uint32_t lba, const void* buffer, void* driver_data) {
-    return pata_write_block(lba, (const uint8_t*)buffer, (pata_device_t*)driver_data);
+static int pata_write_multiple_sectors(uint32_t lba, uint32_t count, const void* buffer, void* driver_data) {
+    for (size_t i = 0; i < count; i++) {
+        int finish_code = pata_write_sector(lba + i, (uint8_t*)buffer + BLOCK_SECTOR_SIZE * i, (pata_device_t*)driver_data);
+
+        if (finish_code < 0) {
+            return finish_code;
+        }
+    }
+
+    return 0;
 }
 
-static uint32_t pata_get_block_count_wrapper(void* driver_data) {
-    return pata_get_block_count((pata_device_t*)driver_data);
+static uint32_t pata_get_sector_count_wrapper(void* driver_data) {
+    return pata_get_sector_count((pata_device_t*)driver_data);
 }
 
 static pata_device_t hd0 = {
@@ -45,9 +61,9 @@ static pata_device_t hd0 = {
 
 static block_device_t pata_block_device = {
     .name = "hd0",
-    .read_block = pata_read_block_wrapper,
-    .write_block = pata_write_block_wrapper,
-    .get_block_count = pata_get_block_count_wrapper,
+    .read_sectors = pata_read_multiple_sectors,
+    .write_sectors = pata_write_multiple_sectors,
+    .get_block_count = pata_get_sector_count_wrapper,
     .driver_data = &hd0
 };
 
@@ -70,14 +86,14 @@ static inline bool ata_check_error(pata_device_t* device) {
     return inb(ATA_REG_STATUS(device)) & 0x01;
 }
 
-static uint32_t cached_block_count = 0;
+static uint32_t cached_sector_count = 0;
 
 void pata_init(void) {
     block_register_device(&pata_block_device);
 }
 
-int pata_read_block(uint32_t lba, uint8_t* buffer, pata_device_t* device) {
-    if (lba >= pata_get_block_count(device)) {
+int pata_read_sector(uint32_t lba, uint8_t* buffer, pata_device_t* device) {
+    if (lba >= pata_get_sector_count(device)) {
         return -1;
     }
 
@@ -108,8 +124,8 @@ int pata_read_block(uint32_t lba, uint8_t* buffer, pata_device_t* device) {
     return 0;
 }
 
-int pata_write_block(uint32_t lba, const uint8_t* buffer, pata_device_t* device) {
-    if (lba >= pata_get_block_count(device)) {
+int pata_write_sector(uint32_t lba, const uint8_t* buffer, pata_device_t* device) {
+    if (lba >= pata_get_sector_count(device)) {
         return -1;
     }
 
@@ -140,9 +156,9 @@ int pata_write_block(uint32_t lba, const uint8_t* buffer, pata_device_t* device)
     return 0;
 }
 
-uint32_t pata_get_block_count(pata_device_t* device) {
-    if (cached_block_count) {
-        return cached_block_count;
+uint32_t pata_get_sector_count(pata_device_t* device) {
+    if (cached_sector_count) {
+        return cached_sector_count;
     }
 
     ata_wait_busy(device);
@@ -170,6 +186,6 @@ uint32_t pata_get_block_count(pata_device_t* device) {
     }
 
     // Words 60-61 contain total LBA28 sectors
-    cached_block_count = ((uint32_t)buffer[61] << 16) | buffer[60];
-    return cached_block_count;
+    cached_sector_count = ((uint32_t)buffer[61] << 16) | buffer[60];
+    return cached_sector_count;
 }
