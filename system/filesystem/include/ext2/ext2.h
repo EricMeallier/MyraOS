@@ -2,6 +2,7 @@
 #define EXT2_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "block_device/block_device.h"
 
@@ -37,7 +38,7 @@ typedef struct superblock_t {
     uint32_t last_check;
     uint32_t interval;
     uint32_t os_id;
-    uint32_t major_version;
+    uint32_t rev_level;
     
     uint16_t uid;
     uint16_t gid;
@@ -127,13 +128,15 @@ typedef struct block_group_desc_t {
 } __attribute__((packed)) block_group_desc_t;
 
 typedef struct ext2_fs_t {
-    superblock_t superblock;
+    superblock_t* superblock;
     block_group_desc_t* group_desc;
+
     uint32_t block_size;
+    uint32_t total_groups;
 
     block_device_t* device;
 } ext2_fs_t;
 
-void ext2_mount(ext2_fs_t* fs, block_device_t* device);
+bool ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
 #endif // EXT2_H
