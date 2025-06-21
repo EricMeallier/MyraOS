@@ -4,10 +4,6 @@
 
 volatile uint8_t bitmap[BITMAP_SIZE];
 
-static inline void set_bit(const size_t bit);
-static inline void clear_bit(const size_t bit);
-static inline bool test_bit(const size_t bit);
-
 static size_t free_page_count;
 
 void pmm_init(void) {
@@ -63,28 +59,3 @@ void pmm_free_page(void *addr) {
 }
 
 size_t pmm_get_free_page_amount(void) { return free_page_count; }
-
-static inline void set_bit(const size_t bit) {
-    size_t bitmap_index = bit / BYTE_SIZE;
-    size_t bit_index = bit % BYTE_SIZE;
-
-    uint8_t mask = 1 << bit_index;
-
-    bitmap[bitmap_index] |= mask;
-}
-
-static inline void clear_bit(const size_t bit) {
-    size_t bitmap_index = bit / BYTE_SIZE;
-    size_t bit_index = bit % BYTE_SIZE;
-
-    uint8_t mask = ~(1 << bit_index);
-
-    bitmap[bitmap_index] &= mask;
-}
-
-static inline bool test_bit(const size_t bit) {
-    size_t bitmap_index = bit / BYTE_SIZE;
-    size_t bit_index = bit % BYTE_SIZE;
-
-    return (bitmap[bitmap_index] >> bit_index) & 1;
-}
