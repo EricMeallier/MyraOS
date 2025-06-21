@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "block_device/block_device.h"
 
@@ -129,7 +130,7 @@ typedef struct block_group_desc_t {
 
 typedef struct ext2_fs_t {
     superblock_t* superblock;
-    block_group_desc_t* group_desc;
+    block_group_desc_t* group_desc; 
 
     uint32_t block_size;
     uint32_t total_groups;

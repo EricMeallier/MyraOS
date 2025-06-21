@@ -53,3 +53,30 @@ void read_block_group_desc(ext2_fs_t* fs) {
     uint32_t lba = (fs->block_size == 1024) ? 2 : 1;
     fs->device->read_sectors(lba, total_blocks, fs->group_desc, fs->device->driver_data);
 }
+
+bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode) {
+    if (inode_index == 0 || inode_index > fs->superblock->total_inodes) {
+        return false;
+    }
+
+    uint32_t inodes_per_group = fs->superblock->inodes_per_group;
+    uint32_t block_size = fs->block_size;
+
+    uint32_t group_index = (inode_index - 1) / inodes_per_group;
+    uint32_t index_in_group = (inode_index - 1) % inodes_per_group;
+
+    block_group_desc_t* group_desc = &fs->group_desc[group_index];
+    uint32_t inode_table_block = group_desc->inode_table;
+
+    uint32_t inode_offset = index_in_group * fs->superblock->inode_size;
+    uint32_t block_offset = inode_table_block + inode_offset / block_size;
+    uint32_t offset_in_block = inode_offset % block_size;
+
+    uint32_t lba = block_to_lba(fs, block_offset);
+    uint8_t block[block_size];
+
+    fs->device->read_sectors(lba, block_size, block, fs->device->driver_data);
+    kmemcpy(out_inode, block + offset_in_block, sizeof(inode_t));
+
+    return true;
+}
