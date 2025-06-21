@@ -8,6 +8,7 @@
 #define EXT2_SUPERBLOCK_SECTORS 2
 
 static void read_block_group_desc(ext2_fs_t* fs);
+static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode);
 
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
     uint32_t sectors_per_block = fs->block_size / BLOCK_SECTOR_SIZE;
@@ -42,7 +43,7 @@ bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     return true;
 }
 
-void read_block_group_desc(ext2_fs_t* fs) {
+static void read_block_group_desc(ext2_fs_t* fs) {
     fs->total_groups = fs->superblock->total_blocks / fs->superblock->blocks_per_group;
 
     uint32_t desc_size = fs->total_groups * sizeof(block_group_desc_t);
@@ -54,7 +55,7 @@ void read_block_group_desc(ext2_fs_t* fs) {
     fs->device->read_sectors(lba, total_blocks, fs->group_desc, fs->device->driver_data);
 }
 
-bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode) {
+static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode) {
     if (inode_index == 0 || inode_index > fs->superblock->total_inodes) {
         return false;
     }
