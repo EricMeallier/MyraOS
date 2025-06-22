@@ -72,6 +72,16 @@ typedef struct superblock_t {
     uint32_t orphan_head;
 } __attribute__((packed)) superblock_t;
 
+typedef enum inode_mode_t {
+    EXT2_S_IFSOCK = 0xC000,  // socket
+    EXT2_S_IFLNK = 0xA000,   // symbolic link
+    EXT2_S_IFREG = 0x8000,   // regular file
+    EXT2_S_IFBLK = 0x6000,   // block device
+    EXT2_S_IFDIR = 0x4000,   // directory
+    EXT2_S_IFCHR = 0x2000,   // char device
+    EXT2_S_IFIFO = 0x1000,   // FIFO
+} inode_mode_t;
+
 typedef struct inode_t {
     uint16_t mode;
     uint16_t uid;
@@ -134,6 +144,10 @@ typedef struct ext2_fs_t {
 
     uint32_t block_size;
     uint32_t total_groups;
+    uint32_t inodes_per_group;
+    uint32_t blocks_per_group;
+    uint32_t first_data_block;
+    uint32_t* inode_table_start;
 
     block_device_t* device;
 } ext2_fs_t;
