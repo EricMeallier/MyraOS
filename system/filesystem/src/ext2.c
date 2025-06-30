@@ -8,21 +8,14 @@
 #define EXT2_SUPERBLOCK_SECTORS 2
 #define EXT2_MAX_BLOCK_SIZE 4096
 
+#define EXT2_ROOT_INODE 2
+#define EXT2_PATH_SEPERATOR "/"
+
 static void read_block_group_desc(ext2_fs_t* fs);
 static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode);
 static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t** dir_entries);
 static void read_dir_entry(ext2_fs_t* fs, inode_t* inode, uint16_t start_offset, dir_entry_t* dir_entry);
-
-static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
-    uint32_t sectors_per_block = fs->block_size / BLOCK_SECTOR_SIZE;
-
-    if (fs->block_size == 1024) {
-        // block 0 = boot, block 1 = superblock at sector 2
-        return (block_num + 1) * sectors_per_block;
-    } else {
-        return block_num * sectors_per_block;
-    }
-}
+static bool resolve_path(ext2_fs_t* fs, char* path, inode_t* inode);
 
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     fs->superblock = kmalloc(sizeof(superblock_t));
@@ -44,6 +37,17 @@ bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     read_block_group_desc(fs);
 
     return true;
+}
+
+static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
+    uint32_t sectors_per_block = fs->block_size / BLOCK_SECTOR_SIZE;
+
+    if (fs->block_size == 1024) {
+        // block 0 = boot, block 1 = superblock at sector 2
+        return (block_num + 1) * sectors_per_block;
+    } else {
+        return block_num * sectors_per_block;
+    }
 }
 
 static void read_block_group_desc(ext2_fs_t* fs) {
@@ -94,7 +98,7 @@ static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t** d
     *dir_entries = (dir_entry_t*) kmalloc(inode->size);
 
     uint32_t inode_offset = 0;
-    size_t entries_count = 0;
+    size_t dir_count = 0;
 
     while (inode_offset < inode->size) {
         dir_entry_t dir_entry;
@@ -103,10 +107,10 @@ static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t** d
         kmemcpy((uint8_t*) *dir_entries + inode_offset, &dir_entry, dir_entry.rec_len);
 
         inode_offset += dir_entry.rec_len;
-        entries_count++;
+        dir_count++;
     }
 
-    return entries_count;
+    return dir_count;
 }
 
 static void read_dir_entry(ext2_fs_t* fs, inode_t* inode, uint16_t offset, dir_entry_t* dir_entry) {
@@ -122,4 +126,54 @@ static void read_dir_entry(ext2_fs_t* fs, inode_t* inode, uint16_t offset, dir_e
 
     kmemcpy(dir_entry, entry_in_block, entry_in_block->rec_len);
     kfree(block);
+}
+
+static bool resolve_path(ext2_fs_t *fs, char *path, inode_t *out_inode) {
+    // check if the path is absolute (starts with the line seperator)
+    char* current_path_dir = kstrtok(path, EXT2_PATH_SEPERATOR);
+    if (kstrcmp(current_path_dir, "") != 0) {
+        return false;
+    }
+
+    // read root inode first
+    inode_t current_inode;
+    if (!read_inode(fs, EXT2_ROOT_INODE, &current_inode)) {
+        return false;
+    }
+
+    bool found = false;
+    while (current_path_dir) {
+        current_path_dir = kstrtok(NULL, EXT2_PATH_SEPERATOR);
+        if (current_path_dir == NULL) {
+            return false;
+        }
+        
+        dir_entry_t* dir_entry_list;
+        size_t dir_count = read_dir_entry_list(fs, &current_inode, &dir_entry_list);
+
+        for (size_t i = 0; i < dir_count; i++) {
+            char* dir_name_str = kmalloc(dir_entry_list[i].name_len);
+            kmemcpy(dir_name_str, dir_entry_list[i].name, dir_entry_list[i].name_len);
+            
+            // found the dir, switch the inode
+            if (kstrcmp(dir_name_str, current_path_dir) == 0) {
+                read_inode(fs, dir_entry_list[i].inode, &current_inode);
+                found = true;
+            }
+
+            kfree(dir_name_str);
+
+            if (found) {
+                break;
+            }
+        }
+
+        if (!found) {
+            return false;
+        }
+    }
+
+    kmemcpy(out_inode, &current_inode, sizeof(inode_t));
+
+    return true;
 }
