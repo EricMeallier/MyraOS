@@ -11,4 +11,7 @@ size_t kstrlen(const char* str);
 void* kmemcpy(void* dest, const void* src, size_t size);
 void* kmemset(void* dest, int ch, size_t count);
 
+// Tokenize
+char *strtok(char *str, const char *delim);
+
 #endif // STRING_H

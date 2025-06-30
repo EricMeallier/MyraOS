@@ -39,3 +39,40 @@ void* kmemset(void* dest, int ch, size_t len) {
     
     return cdest;
 }
+
+char *strtok(char *str, const char *delim) {
+    static char *next;
+    if (str) {
+        next = str;
+    }
+    if (!next) {
+        return 0;
+    }
+
+    str = next;
+
+    // Skip leading delimiters
+    while (*str && strchr(delim, *str)) {
+        str++;
+    }
+
+    if (*str == 0) {
+        next = 0;
+        return 0;
+    }
+
+    char *start = str;
+
+    while (*next && !strchr(delim, *next)) {
+        next++;
+    }
+
+    if (*next) {
+        *next = 0;
+        next++;
+    } else {
+        next = 0;
+    }
+
+    return start;
+}
