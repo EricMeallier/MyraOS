@@ -40,8 +40,20 @@ void* kmemset(void* dest, int ch, size_t len) {
     return cdest;
 }
 
-char *strtok(char *str, const char *delim) {
-    static char *next;
+char *kstrchr(const char* s, int c) {
+    while (*s) {
+        if (*s == (char) c) {
+            return (char*) s;
+        }
+
+        s++;
+    }
+
+    return 0;
+}
+
+char* kstrtok(char* str, const char* delim) {
+    static char* next;
     if (str) {
         next = str;
     }
@@ -52,7 +64,7 @@ char *strtok(char *str, const char *delim) {
     str = next;
 
     // Skip leading delimiters
-    while (*str && strchr(delim, *str)) {
+    while (*str && kstrchr(delim, *str)) {
         str++;
     }
 
@@ -61,9 +73,9 @@ char *strtok(char *str, const char *delim) {
         return 0;
     }
 
-    char *start = str;
+    char* start = str;
 
-    while (*next && !strchr(delim, *next)) {
+    while (*next && !kstrchr(delim, *next)) {
         next++;
     }
 
