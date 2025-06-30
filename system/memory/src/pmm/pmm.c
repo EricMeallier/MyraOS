@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 
+#include "bit_operations/bit_operations.h"
+
 volatile uint8_t bitmap[BITMAP_SIZE];
 
 static size_t free_page_count;
@@ -32,8 +34,8 @@ void* pmm_alloc_page(void) {
                 size_t bit_index = i * BYTE_SIZE + j;
 
                 // check if page is free
-                if (!test_bit(bit_index)) {
-                    set_bit(bit_index);
+                if (!test_bit(bitmap, bit_index)) {
+                    set_bit(bitmap, bit_index);
                     free_page_count--;
 
                     return (void *)((uintptr_t)bit_index * PAGE_SIZE);
@@ -52,9 +54,9 @@ void pmm_free_page(void *addr) {
         return;
     }
 
-    if (test_bit(bitmap_index)) {
+    if (test_bit(bitmap, bitmap_index)) {
         free_page_count++;
-        clear_bit(bitmap_index);
+        clear_bit(bitmap, bitmap_index);
     }
 }
 
