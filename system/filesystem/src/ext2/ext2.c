@@ -40,7 +40,7 @@ bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     return true;
 }
 
-uint8_t* read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
+uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
     inode_t file_inode;
     if (!resolve_path(fs, path, &file_inode)) {
         return NULL;
@@ -175,6 +175,20 @@ uint8_t* read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
     kfree(tpl_indirect);
 
     return buffer;
+}
+
+size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t** out_entries) {
+    inode_t dir_inode;
+
+    if (!resolve_path(fs, path, &dir_inode)) {
+        return 0;
+    }
+
+    if ((dir_inode.mode & 0xF000) != EXT2_S_IFDIR) {
+        return 0;
+    }
+    
+    return read_dir_entry_list(fs, &dir_inode, out_entries);
 }
 
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
