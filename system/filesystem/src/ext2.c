@@ -11,6 +11,7 @@
 #define EXT2_ROOT_INODE 2
 #define EXT2_PATH_SEPERATOR "/"
 
+static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num);
 static void read_block_group_desc(ext2_fs_t* fs);
 static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode);
 static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t** dir_entries);
@@ -37,6 +38,143 @@ bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     read_block_group_desc(fs);
 
     return true;
+}
+
+uint8_t* read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
+    inode_t file_inode;
+    if (!resolve_path(fs, path, &file_inode)) {
+        return NULL;
+    }
+
+    bool is_file = (file_inode.mode & 0xF000) == EXT2_S_IFREG;
+    if (!is_file) {
+        return NULL;
+    }
+
+    *out_size = file_inode.size;
+
+    uint8_t* buffer = (uint8_t*) kmalloc(*out_size);
+    if (!buffer) {
+        return NULL;
+    }
+
+    size_t total_bytes = *out_size;
+    size_t total_blocks = (total_bytes + fs->block_size - 1) / fs->block_size;
+    size_t read_blocks = 0;
+
+    // Direct blocks
+    for (; read_blocks < total_blocks && read_blocks < EXT2_DIRECT_BLOCKS; read_blocks++) {
+        fs->device->read_sectors(
+            block_to_lba(fs, file_inode.direct_blocks[read_blocks]),
+            fs->block_size / BLOCK_SECTOR_SIZE,
+            buffer + read_blocks * fs->block_size,
+            fs->device->driver_data
+        );
+    }
+
+    if (read_blocks == total_blocks) return buffer;
+
+    // Single indirect
+    uint32_t* indirect_block = (uint32_t*) kmalloc(fs->block_size);
+    fs->device->read_sectors(
+        block_to_lba(fs, file_inode.single_indirect_block),
+        fs->block_size / BLOCK_SECTOR_SIZE,
+        indirect_block,
+        fs->device->driver_data
+    );
+
+    size_t indirect_count = fs->block_size / sizeof(uint32_t);
+    for (size_t i = 0; read_blocks < total_blocks && i < indirect_count; i++, read_blocks++) {
+        fs->device->read_sectors(
+            block_to_lba(fs, indirect_block[i]),
+            fs->block_size / BLOCK_SECTOR_SIZE,
+            buffer + read_blocks * fs->block_size,
+            fs->device->driver_data
+        );
+    }
+    kfree(indirect_block);
+
+    if (read_blocks == total_blocks) {
+        return buffer;
+    }
+
+    // Double indirect
+    uint32_t* dbl_indirect = (uint32_t*) kmalloc(fs->block_size);
+    fs->device->read_sectors(
+        block_to_lba(fs, file_inode.double_indirect_block),
+        fs->block_size / BLOCK_SECTOR_SIZE,
+        dbl_indirect,
+        fs->device->driver_data
+    );
+
+    for (size_t i = 0; read_blocks < total_blocks && i < indirect_count; i++) {
+        uint32_t* indirect = (uint32_t*) kmalloc(fs->block_size);
+        fs->device->read_sectors(
+            block_to_lba(fs, dbl_indirect[i]),
+            fs->block_size / BLOCK_SECTOR_SIZE,
+            indirect,
+            fs->device->driver_data
+        );
+        for (size_t j = 0; read_blocks < total_blocks && j < indirect_count; j++, read_blocks++) {
+            fs->device->read_sectors(
+                block_to_lba(fs, indirect[j]),
+                fs->block_size / BLOCK_SECTOR_SIZE,
+                buffer + read_blocks * fs->block_size,
+                fs->device->driver_data
+            );
+        }
+        kfree(indirect);
+    }
+    kfree(dbl_indirect);
+
+    if (read_blocks == total_blocks) {
+        return buffer;
+    }
+
+    // Triple indirect
+    uint32_t* tpl_indirect = (uint32_t*) kmalloc(fs->block_size);
+    fs->device->read_sectors(
+        block_to_lba(fs, file_inode.triple_indirect_block),
+        fs->block_size / BLOCK_SECTOR_SIZE,
+        tpl_indirect,
+        fs->device->driver_data
+    );
+
+    for (size_t i = 0; read_blocks < total_blocks && i < indirect_count; i++) {
+        uint32_t* dbl = (uint32_t*) kmalloc(fs->block_size);
+        fs->device->read_sectors(
+            block_to_lba(fs, tpl_indirect[i]),
+            fs->block_size / BLOCK_SECTOR_SIZE,
+            dbl,
+            fs->device->driver_data
+        );
+
+        for (size_t j = 0; read_blocks < total_blocks && j < indirect_count; j++) {
+            uint32_t* indirect = (uint32_t*) kmalloc(fs->block_size);
+            fs->device->read_sectors(
+                block_to_lba(fs, dbl[j]),
+                fs->block_size / BLOCK_SECTOR_SIZE,
+                indirect,
+                fs->device->driver_data
+            );
+
+            for (size_t k = 0; read_blocks < total_blocks && k < indirect_count; k++, read_blocks++) {
+                fs->device->read_sectors(
+                    block_to_lba(fs, indirect[k]),
+                    fs->block_size / BLOCK_SECTOR_SIZE,
+                    buffer + read_blocks * fs->block_size,
+                    fs->device->driver_data
+                );
+            }
+
+            kfree(indirect);
+        }
+        kfree(dbl);
+    }
+
+    kfree(tpl_indirect);
+
+    return buffer;
 }
 
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
@@ -167,6 +305,8 @@ static bool resolve_path(ext2_fs_t *fs, char *path, inode_t *out_inode) {
                 break;
             }
         }
+
+        kfree(dir_entry_list);
 
         if (!found) {
             return false;

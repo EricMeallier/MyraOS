@@ -154,4 +154,6 @@ typedef struct ext2_fs_t {
 
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
+uint8_t* read_file(ext2_fs_t* fs, char* path, size_t* out_size);
+
 #endif // EXT2_H
