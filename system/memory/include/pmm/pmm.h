@@ -10,8 +10,6 @@
 
 #define BIOS_PART 512
 
-extern volatile uint8_t bitmap[BITMAP_SIZE];
-
 // init
 void pmm_init(void);
 

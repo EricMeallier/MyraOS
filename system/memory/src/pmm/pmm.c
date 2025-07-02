@@ -4,7 +4,7 @@
 
 #include "bit_operations/bit_operations.h"
 
-volatile uint8_t bitmap[BITMAP_SIZE];
+static uint8_t bitmap[BITMAP_SIZE];
 
 static size_t free_page_count;
 
