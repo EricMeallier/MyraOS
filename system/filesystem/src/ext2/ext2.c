@@ -3,6 +3,7 @@
 #include "libc_kernel/string.h"
 #include "heap/heap.h"
 #include "block_device/block_device.h"
+#include <stdbool.h>
 
 #define EXT2_SUPERBLOCK_LBA 2
 #define EXT2_SUPERBLOCK_SECTORS 2
@@ -52,6 +53,9 @@ uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
     }
 
     *out_size = file_inode.size;
+    if (*out_size == 0) {
+        return (uint8_t*) kmalloc(0);
+    }      
 
     uint8_t* buffer = (uint8_t*) kmalloc(*out_size);
     if (!buffer) {
@@ -177,6 +181,34 @@ uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size) {
     return buffer;
 }
 
+size_t ext2_get_file_size(ext2_fs_t* fs, char* path) {
+    inode_t file_inode;
+    
+    if (!resolve_path(fs, path, &file_inode)) {
+        return 0;
+    }
+
+    if ((file_inode.mode & 0xF000) != EXT2_S_IFREG) {
+        return 0;
+    }
+    
+    return file_inode.size;
+}
+
+bool ext2_file_exists(ext2_fs_t* fs, char* path) {
+    return ext2_is_file(fs, path);
+}
+
+bool ext2_is_file(ext2_fs_t* fs, char* path) {
+    inode_t file_inode;
+
+    if (!resolve_path(fs, path, &file_inode)) {
+        return false;
+    }
+
+    return (file_inode.mode & 0xF000) == EXT2_S_IFREG;
+}
+
 size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t** out_entries) {
     inode_t dir_inode;
 
@@ -189,6 +221,16 @@ size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t** out_entries) {
     }
     
     return read_dir_entry_list(fs, &dir_inode, out_entries);
+}
+
+bool ext2_is_dir(ext2_fs_t* fs, char* path) { 
+    inode_t dir_inode;
+
+    if (!resolve_path(fs, path, &dir_inode)) {
+        return false;
+    }
+
+    return (dir_inode.mode & 0xF000) == EXT2_S_IFDIR;
 }
 
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {

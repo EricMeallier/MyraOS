@@ -152,10 +152,21 @@ typedef struct ext2_fs_t {
     block_device_t* device;
 } ext2_fs_t;
 
+// Mount
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
+// Files
 uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size);
 
+size_t ext2_get_file_size(ext2_fs_t* fs, char* path);
+
+bool ext2_file_exists(ext2_fs_t* fs, char* path);
+
+bool ext2_is_file(ext2_fs_t* fs, char* path);
+
+// Folders
 size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t** out_entries);
+
+bool ext2_is_dir(ext2_fs_t* fs, char* path);
 
 #endif // EXT2_H
