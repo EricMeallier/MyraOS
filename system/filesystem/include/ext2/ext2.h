@@ -126,16 +126,12 @@ typedef struct block_group_desc_t {
     uint32_t inode_bitmap;
     uint32_t inode_table;
 
-    uint16_t free_blocks;
-    uint16_t free_inodes;
-    uint16_t dir_count; 
-    
-    uint16_t unused_pad;
-    uint16_t block_bitmap_csum;
-    uint16_t inode_bitmap_csum;
-    uint16_t unused_pad2;
+    uint16_t free_blocks_count;
+    uint16_t free_inodes_count;
+    uint16_t used_dirs_count;
+    uint16_t pad;
 
-    uint32_t reserved;
+    uint8_t reserved[12];
 } __attribute__((packed)) block_group_desc_t;
 
 typedef struct ext2_fs_t {
@@ -156,7 +152,7 @@ typedef struct ext2_fs_t {
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
 // Files
-uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size);
+uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size, bool* succeeded);
 
 size_t ext2_get_file_size(ext2_fs_t* fs, char* path);
 
@@ -165,7 +161,7 @@ bool ext2_file_exists(ext2_fs_t* fs, char* path);
 bool ext2_is_file(ext2_fs_t* fs, char* path);
 
 // Folders
-size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t** out_entries);
+size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t*** out_entries);
 
 bool ext2_is_dir(ext2_fs_t* fs, char* path);
 
