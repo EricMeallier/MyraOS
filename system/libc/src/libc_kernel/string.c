@@ -53,37 +53,40 @@ char *kstrchr(const char* s, int c) {
 }
 
 char* kstrtok(char* str, const char* delim) {
-    static char* next;
+    static char* next = NULL;
     if (str) {
         next = str;
+    } else if (!next || !*next) {
+        return NULL;
     }
-    if (!next) {
-        return 0;
-    }
-
-    str = next;
 
     // Skip leading delimiters
-    while (*str && kstrchr(delim, *str)) {
-        str++;
+    while (*next && kstrchr(delim, *next)) {
+        next++;
     }
 
-    if (*str == 0) {
-        next = 0;
-        return 0;
+    if (!*next) {
+        next = NULL;
+        return NULL;
     }
 
-    char* start = str;
+    char* start = next;
 
+    // Find end of token
     while (*next && !kstrchr(delim, *next)) {
         next++;
     }
 
     if (*next) {
-        *next = 0;
+        *next = '\0';
         next++;
     } else {
-        next = 0;
+        next = NULL;
+    }
+
+    // Return NULL for empty token
+    if (*start == '\0') {
+        return NULL;
     }
 
     return start;
