@@ -1,18 +1,22 @@
 [org 0x7C00]
 [bits 16]
 
+start:
+    jmp main
+
 KERNEL_CODE_SEG equ 0x08
 KERNEL_DATA_SEG equ 0x10
 USER_CODE_SEG equ 0x18
 USER_DATA_SEG equ 0x20
+TSS_SEG equ 0x28
 
 KERNEL_LOAD_SEG equ 0x1000 
 KERNEL_START_ADDR equ 0x10000
 
 KERNEL_SEGMENTS equ 64
 
-start:
-    jmp main
+welcome: db 'Welcome to MyraOS! Booting...', 0
+kernel_injection_error: db 'Error: Could not inject kernel', 0
 
 main:
     cli
@@ -195,8 +199,13 @@ gdt_start:
     db 0xCF
     db 0x00
 
-    ; tss 
-    ; would be added later
+    ; TSS descriptor: Base = &tss, Limit = size of TSS
+    dw tss_end - tss - 1             ; Limit (104 bytes)
+    dw tss                           ; Base
+    db 0x00
+    db 0x89                          ; Access byte (present, type 9 = 32-bit TSS)
+    db 0x40                          ; Flags: 4K granularity off, 32-bit
+    db 0x00
 gdt_end:
 
 gdt_descriptor:
@@ -227,11 +236,16 @@ enable_protected_mode:
 
     jmp KERNEL_CODE_SEG:protected_mode_start
 
-welcome: db 'Welcome to MyraOS! Booting...', 0
-kernel_injection_error: db 'Error: Could not inject kernel', 0
-
-
 [bits 32]
+
+tss:
+    dw 0 ; prev task link
+    dw 0 
+    dd 0 ; esp0 
+    dw KERNEL_DATA_SEG
+    dw 0
+    times 23 dd 0 ; padding to 104 bytes
+tss_end:
 
 protected_mode_start:
     mov ax, KERNEL_DATA_SEG
@@ -241,7 +255,11 @@ protected_mode_start:
     mov gs, ax
     mov ss, ax
 
+    mov ax, TSS_SEG
+    ltr ax
+
     mov esp, 0x90000
+    mov dword [tss + 4], esp
 
     jmp KERNEL_CODE_SEG:KERNEL_START_ADDR
 
