@@ -13,6 +13,9 @@
 #define EXT2_ROOT_INODE 2
 #define EXT2_PATH_SEPERATOR "/"
 
+#define IS_REG(mode) (((mode) & 0xF000) == EXT2_S_IFREG)
+#define IS_DIR(mode) (((mode) & 0xF000) == EXT2_S_IFDIR)
+
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num);
 static void read_block_group_desc(ext2_fs_t* fs);
 static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode);
@@ -53,8 +56,7 @@ uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size, bool* succe
         return NULL;
     }
 
-    bool is_file = (file_inode.mode & 0xF000) == EXT2_S_IFREG;
-    if (!is_file) {
+    if (!IS_REG(file_inode.mode)) {
         return NULL;
     }
 
@@ -207,7 +209,7 @@ size_t ext2_get_file_size(ext2_fs_t* fs, char* path) {
         return 0;
     }
 
-    if ((file_inode.mode & 0xF000) != EXT2_S_IFREG) {
+    if (!IS_REG(file_inode.mode)) {
         return 0;
     }
     
@@ -225,7 +227,7 @@ bool ext2_is_file(ext2_fs_t* fs, char* path) {
         return false;
     }
 
-    return (file_inode.mode & 0xF000) == EXT2_S_IFREG;
+    return IS_REG(file_inode.mode);
 }
 
 size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t*** out_entries) {
@@ -235,7 +237,7 @@ size_t ext2_list_dir(ext2_fs_t* fs, char* path, dir_entry_t*** out_entries) {
         return 0;
     }
 
-    if ((dir_inode.mode & 0xF000) != EXT2_S_IFDIR) {
+    if (!IS_DIR(dir_inode.mode)) {
         return 0;
     }
     
@@ -249,7 +251,7 @@ bool ext2_is_dir(ext2_fs_t* fs, char* path) {
         return false;
     }
 
-    return (dir_inode.mode & 0xF000) == EXT2_S_IFDIR;
+    return IS_DIR(dir_inode.mode);
 }
 
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num) {
@@ -324,7 +326,7 @@ static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode) {
 }
 
 static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t*** dir_entries) {
-    if ((inode->mode & 0xF000) != EXT2_S_IFDIR) {
+    if (!IS_DIR(inode->mode)) {
         return 0;
     }
 
