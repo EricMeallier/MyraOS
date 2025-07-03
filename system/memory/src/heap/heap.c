@@ -22,6 +22,10 @@ void heap_init(uintptr_t start, size_t size) {
 }
 
 void* kmalloc(size_t size) {
+    if (size == 0) {
+        return NULL;
+    }
+
     // align the size to fit 32 bits
     size = (size + 3) & ~3;
 
