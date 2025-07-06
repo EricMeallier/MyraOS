@@ -4,7 +4,7 @@
 #include "interrupt/idt/idt.h"
 
 #define SYSCALL_INTERRUPT 0x80
-#define SYSCALL_MAX 32
+#define SYSCALL_MAX 256
 
 void syscall_init(void);
 

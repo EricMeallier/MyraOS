@@ -23,6 +23,7 @@ void kernel_main() {
     idt_init();
     isr_init();
     irq_init();
+    syscall_init();
 
     pit_init();
     rtc_init();

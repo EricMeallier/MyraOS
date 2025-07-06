@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "print/print.h"
+#include "interrupt/syscall/syscall_numbers.h"
 
 extern void _syscall_stub(void);
 
@@ -10,13 +10,8 @@ typedef uint32_t (*syscall_func_t)(uint32_t, uint32_t, uint32_t, uint32_t);
 
 static syscall_func_t syscall_table[SYSCALL_MAX];
 
-static uint32_t sys_test(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
-    (void) a; (void) b; (void) c; (void) d;
-    
-    kprintf("Hello, world! - From kernel!");
-
-    return 42;
-}
+extern uint32_t sys_write(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_read(uint32_t, uint32_t, uint32_t, uint32_t);
 
 static void register_syscall(uint32_t index, syscall_func_t func) {
     if (index < SYSCALL_MAX) {
@@ -32,7 +27,8 @@ void syscall_init(void) {
         IDT_FLAG_PRESENT | IDT_FLAG_RING3 | IDT_FLAG_GATE_TASK_32BIT_INT
     );
 
-    register_syscall(0, sys_test);
+    register_syscall(SYS_WRITE, sys_write);
+    register_syscall(SYS_READ,  sys_read);
 }
 
 void syscall_handler(const registers_t* regs) {
