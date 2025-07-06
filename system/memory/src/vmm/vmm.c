@@ -1,5 +1,6 @@
 #include "vmm/vmm.h"
 
+#include "libc_kernel/string.h"
 #include "panic/panic.h"
 #include "pmm/pmm.h"
 
@@ -32,6 +33,8 @@ void vmm_init(void) {
     load_page_directory((uint32_t) kernel_page_directory);
 
     enable_paging();
+
+    kernel_page_directory = (page_directory_t*)0xFFFFF000;
 }
 
 void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) {
@@ -45,11 +48,17 @@ void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags)
             kpanic("Out of memory while creating page table");
         }
 
-        for (size_t i = 0; i < PAGE_ENTRIES; i++) {
-            new_page_table->entries[i] = 0;
-        }   
+        if (flags & PAGE_USER) {
+            kernel_page_directory->entries[dir_index] = MAKE_ENTRY(new_page_table, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+        } else {
+            kernel_page_directory->entries[dir_index] = MAKE_ENTRY(new_page_table, PAGE_PRESENT | PAGE_WRITE);
+        }
+        
+        new_page_table = (page_table_t*)(0xFFC00000 + (dir_index * PAGE_SIZE));
 
-        kernel_page_directory->entries[dir_index] = MAKE_ENTRY(new_page_table, PAGE_PRESENT | PAGE_WRITE);
+        kmemset(new_page_table, 0, PAGE_SIZE);
+
+        __asm__ volatile("invlpg (%0)" :: "r" (new_page_table));
     }
 
     page_table_t* page_table = (page_table_t*)(RECURSIVE_PAGE_TABLE_BASE + dir_index * PAGE_SIZE);
