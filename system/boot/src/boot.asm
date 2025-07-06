@@ -35,13 +35,17 @@ main:
 
     sti
 
-    call .load_kernel
+    call load_kernel
 
     mov si, welcome
 
     call print
 
-.load_kernel:
+    jmp setup
+
+%include "system/boot/src/io.asm"
+
+load_kernel:
     ; input: none
     ; modifies: ax, bx, cx, dx, es
 
@@ -70,85 +74,15 @@ disk_read_error:
 
     hlt
 
-clear_screen:
+setup:
     ; input: none
-    ; modifies: ax, cx
+    ; modifies: bx
 
-    mov ax, 0xB800
-    mov es, ax
-    xor di, di
+    call enable_a20
 
-    mov al, ' '
-    mov ah, 0x0F
+    call set_gdt
 
-    mov cx, 80 * 25
-
-    .clear_cells:
-        mov [es:di], ax
-
-        add di, 2
-        loop .clear_cells
-
-        ret
-
-print:
-    ; input: si = message to print
-    ; modifies: ax
-
-    mov ax, 0xB800
-    mov es, ax
-    xor di, di
-
-    mov ah, 0x0F
-
-    .next_char:
-        lodsb
-
-        cmp al, 0
-        je .done
-
-        mov [es:di], ax
-        
-        add di, 2
-        jmp .next_char
-    
-    ret
-
-    .done:
-        ; input: none
-        ; modifies: bx
-
-        mov bx, di
-        shr bx, 1
-        call move_cursor
-
-        call enable_a20
-
-        call set_gdt
-
-        jmp enable_protected_mode
-
-move_cursor:
-    ; input: bx = char index
-    ; modifies: al, dx
-
-    mov dx, 0x3D4
-    mov al, 0x0F
-    out dx, al
-
-    inc dx
-    mov al, bl
-    out dx, al
-
-    dec dx
-    mov al, 0x0E
-    out dx, al
-
-    inc dx
-    mov al, bh
-    out dx, al
-
-    ret
+    jmp enable_protected_mode
 
 enable_a20:
     ; input: none
@@ -199,12 +133,13 @@ gdt_start:
     db 0xCF
     db 0x00
 
-    ; TSS descriptor: Base = &tss, Limit = size of TSS
-    dw tss_end - tss - 1             ; Limit (104 bytes)
-    dw tss                           ; Base
+    ; TSS descriptor: place holder
+    gdt_tss:
+    dw 0x00            
+    dw 0x00                           
     db 0x00
-    db 0x89                          ; Access byte (present, type 9 = 32-bit TSS)
-    db 0x40                          ; Flags: 4K granularity off, 32-bit
+    db 0x00                        
+    db 0x00                        
     db 0x00
 gdt_end:
 
@@ -255,11 +190,36 @@ protected_mode_start:
     mov gs, ax
     mov ss, ax
 
+    ; --- build the TSS descriptor ---
+    mov ebx, gdt_tss          ; EBX = address of placeholder
+    mov eax, tss              ; EAX = base of the TSS
+
+    ; limit (103 = 0x67)
+    mov word [ebx], tss_end - tss - 1
+
+    ; base 0-15
+    mov word [ebx + 2], ax
+
+    ; base 16-23
+    shr eax, 16
+    mov byte [ebx + 4], al
+
+    ; access byte: 0x89  (Present=1, DPL=0, type=9 = Available 32-bit TSS)
+    mov byte [ebx + 5], 0x89
+
+    ; flags / limit high: G=0, D/B=0, L=0, AVL=0, limit(19..16)=0
+    mov byte [ebx + 6], 0
+
+    ; base 24-31
+    mov byte [ebx + 7], ah
+
+    ; --- store esp0/ss0 in the TSS ---
+    mov dword [tss + 4], 0x9FFFC     ; esp0  (your kernel stack top)
+    mov  word [tss + 8], KERNEL_DATA_SEG
+
+    ; --- load TR ---
     mov ax, TSS_SEG
     ltr ax
-
-    mov esp, 0x90000
-    mov dword [tss + 4], esp
 
     jmp KERNEL_CODE_SEG:KERNEL_START_ADDR
 
