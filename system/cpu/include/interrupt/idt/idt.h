@@ -11,6 +11,8 @@
 #define IDT_ENTRY_SIZE sizeof(idt_entry_t)
 
 #define KERNEL_CODE_SEG 0x08
+#define KERNEL_DATA_SEG 0x10
+#define USER_CODE_SEG 0x18
 
 typedef struct idt_entry_t {
     uint16_t offset_low;
