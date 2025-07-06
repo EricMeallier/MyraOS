@@ -7,11 +7,12 @@ QEMU = qemu-system-i386
 # === Paths ===
 SRC_DIR        = system
 OBJ_DIR        = build/obj
-BOOT_SRC       = $(SRC_DIR)/boot/boot.asm
+BOOT_SRC       = $(SRC_DIR)/boot/src/boot.asm
 BOOT_BIN       = build/boot.bin
 KERNEL_BIN     = build/kernel.bin
 KERNEL_ELF     = build/kernel.elf
 LINKER_SCRIPT  = linker.ld
+LINKER_ELF     = linker_elf.ld
 FLOPPY_IMG     = build/floppy.img
 HDD_IMG        = build/hdd.img
 
@@ -63,9 +64,9 @@ $(KERNEL_BIN): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
 	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
 
 # Link ELF kernel (for debugging with symbols)
-$(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
+$(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_ELF)
 	@echo [LD] Linking kernel ELF \(with symbols\)...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
+	@$(LD) -T $(LINKER_ELF) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
 
 # Floppy image
 $(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
