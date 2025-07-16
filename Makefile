@@ -1,102 +1,87 @@
-# === Toolchain ===
-ASM  = nasm
-CC   = i386-elf-gcc
-LD   = i386-elf-ld
-QEMU = qemu-system-i386
+# ──────────  Toolchain  ──────────
+ASM  := nasm
+CC   := i386-elf-gcc
+LD   := i386-elf-ld
+QEMU := qemu-system-i386
 
-# === Paths ===
-SRC_DIR        = system
-OBJ_DIR        = build/obj
-BOOT_SRC       = $(SRC_DIR)/boot/src/boot.asm
-BOOT_BIN       = build/boot.bin
-KERNEL_BIN     = build/kernel.bin
-KERNEL_ELF     = build/kernel.elf
-LINKER_SCRIPT  = linker.ld
-LINKER_ELF     = linker_elf.ld
-FLOPPY_IMG     = build/floppy.img
-HDD_IMG        = build/hdd.img
+# ──────────  Paths  ──────────
+SRC_DIR        := system
+OBJ_DIR        := build/obj
+ISO_DIR        := build/iso
+ISO_IMG        := build/MyraOS.iso
+KERNEL_ELF     := build/kernel.elf
+LINKER_SCRIPT  := linker.ld
 
-# === Source discovery ===
-SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
-OBJ_FILES := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC_FILES:.c=.o))
+# ──────────  Source discovery  ──────────
+SRC_FILES  := $(shell find $(SRC_DIR) -name '*.c')
+OBJ_FILES  := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC_FILES:.c=.o))
 
-INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d -name include)
-INCLUDE_FLAGS := $(foreach dir, $(INCLUDE_DIRS), -I"$(dir)")
+INCLUDE_DIRS  := $(shell find $(SRC_DIR) -type d -name include)
+INCLUDE_FLAGS := $(foreach d,$(INCLUDE_DIRS),-I"$d")
 
-ASM_FILES := $(filter-out $(BOOT_SRC), $(shell find $(SRC_DIR) -name '*.asm'))
-ASM_OBJ_FILES := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(ASM_FILES:.asm=.o))
+# All .asm sources
+ASM_FILES      := $(shell find $(SRC_DIR) -name '*.asm')
+ASM_OBJ_FILES  := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, \
+                   $(ASM_FILES:.asm=.o))
 
-# === OS-independent helpers (Unix only) ===
-RM          = rm -rf
-MKDIR       = mkdir -p
-FILE_SIZE   = @if [ $$(wc -c < "$(BOOT_BIN)") -ne 512 ]; then echo "Error: Bootloader must be 512 bytes"; exit 1; fi
-CREATE_IMG  = dd if=/dev/zero of="$(FLOPPY_IMG)" bs=512 count=2880 status=none
-CREATE_HDD  = dd if=/dev/zero of="$(HDD_IMG)" bs=512 count=32768 status=none
-DD_BOOT     = dd if="$(BOOT_BIN)" of="$(FLOPPY_IMG)" bs=512 count=1 conv=notrunc status=none
-DD_KERNEL   = dd if="$(KERNEL_BIN)" of="$(FLOPPY_IMG)" bs=512 seek=1 conv=notrunc status=none
+ALL_OBJS := $(OBJ_FILES) $(ASM_OBJ_FILES)
 
-# === Targets ===
+# ──────────  Configurable Flags  ──────────
+DEBUG ?= 0
+
+CFLAGS := -ffreestanding -m32 -std=gnu99 -Wall -Wextra -fno-omit-frame-pointer $(INCLUDE_FLAGS)
+ifeq ($(DEBUG), 1)
+CFLAGS += -g -O0
+else
+CFLAGS += -O2
+endif
+
+# ──────────  Default target  ──────────
 all: run
 
-# Bootloader
-$(BOOT_BIN): $(BOOT_SRC)
-	@echo [NASM] Assembling bootloader...
-	@$(MKDIR) build
-	@$(ASM) -f bin $< -o $@
-	@$(FILE_SIZE)
-
-# Compile C sources
+# ──────────  Build rules  ──────────
+# C
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo [GCC] Compiling $<
-	@$(MKDIR) $(dir $@)
-	@$(CC) -ffreestanding -m32 $(INCLUDE_FLAGS) \
-		-c $< -o $@ -Wall -Wextra -std=gnu99 -O0 -ggdb
+	@echo "[GCC] $<"
+	@mkdir -p $(dir $@)
+	@$(CC) -g -ffreestanding -m32 -std=gnu99 -O2 -Wall -Wextra \
+			-Wall -Wextra -fno-omit-frame-pointer \
+			$(INCLUDE_FLAGS) -c $< -o $@
 
-# Compile asm sources
+# Assembly
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm
-	@echo [NASM] Assembling $<
-	@$(MKDIR) $(dir $@)
-	@$(ASM) -f elf $< -o $@
+	@echo "[NASM] $<"
+	@mkdir -p $(dir $@)
+	@$(ASM) -f elf32 $< -o $@
 
-# Link raw kernel binary (used for floppy)
-$(KERNEL_BIN): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_SCRIPT)
-	@echo [LD] Linking kernel BIN...
-	@$(LD) -T $(LINKER_SCRIPT) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
+# Kernel ELF
+$(KERNEL_ELF): $(ALL_OBJS) $(LINKER_SCRIPT)
+	@echo "[LD] Linking kernel ELF"
+	@mkdir -p $(dir $@)
+	@$(LD) -T $(LINKER_SCRIPT) -nostdlib -m elf_i386 \
+	       -o $@ $(ALL_OBJS)
 
-# Link ELF kernel (for debugging with symbols)
-$(KERNEL_ELF): $(OBJ_FILES) $(ASM_OBJ_FILES) $(LINKER_ELF)
-	@echo [LD] Linking kernel ELF \(with symbols\)...
-	@$(LD) -T $(LINKER_ELF) -o $@ $(OBJ_FILES) $(ASM_OBJ_FILES) -nostdlib -m elf_i386
+# ──────────  GRUB ISO  ──────────
+GRUB_CFG := $(SRC_DIR)/boot/grub/grub.cfg
 
-# Floppy image
-$(FLOPPY_IMG): $(BOOT_BIN) $(KERNEL_BIN)
-	@echo [IMG] Creating floppy image...
-	@$(MKDIR) build
-	@$(CREATE_IMG)
-	@$(DD_BOOT)
-	@$(DD_KERNEL)
+$(ISO_IMG): $(KERNEL_ELF) $(GRUB_CFG)
+	@echo "[ISO] Creating GRUB ISO"
+	@mkdir -p $(ISO_DIR)/boot/grub
+	@cp $(KERNEL_ELF) $(ISO_DIR)/boot/kernel.elf
+	@cp $(GRUB_CFG)   $(ISO_DIR)/boot/grub/grub.cfg
+	@grub2-mkrescue -o $(ISO_IMG) $(ISO_DIR) >/dev/null 2>&1
 
-# HDD image (32K sectors = 16MB)
-$(HDD_IMG):
-	@echo [HDD] Creating hard disk image...
-	@$(MKDIR) build
-	@$(CREATE_HDD)
+# ──────────  Run targets  ──────────
+run: $(ISO_IMG)
+	@echo "[QEMU] Running MyraOS"
+	@$(QEMU) -cdrom $(ISO_IMG) -m 128M
 
-# Run in QEMU normally
-run: $(FLOPPY_IMG) $(HDD_IMG)
-	@echo [QEMU] Launching OS...
-	@$(QEMU) \
-		-drive format=raw,file="$(FLOPPY_IMG)",if=floppy \
-		-drive format=raw,file="$(HDD_IMG)",index=0,if=ide
+debug: DEBUG=1
+debug: $(ISO_IMG)
+	@echo "[QEMU] Running MyraOS (GDB mode)"
+	@$(QEMU) -s -S -cdrom $(ISO_IMG) -m 128M
 
-# Run in QEMU with GDB support
-debug: $(FLOPPY_IMG) $(HDD_IMG) $(KERNEL_ELF)
-	@echo [QEMU] Launching QEMU in GDB mode...
-	@$(QEMU) -s -S \
-		-drive format=raw,file="$(FLOPPY_IMG)",if=floppy \
-		-drive format=raw,file="$(HDD_IMG)",index=0,if=ide
-
-# Clean build
+# ──────────  Clean  ──────────
 clean:
-	@echo [CLEAN] Removing build artifacts...
-	@$(RM) build
+	@echo "[CLEAN] Removing build artifacts"
+	@rm -rf build

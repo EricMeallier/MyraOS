@@ -1,37 +1,44 @@
 ENTRY(_start)
-OUTPUT_FORMAT("binary")
+OUTPUT_FORMAT("elf32-i386")
 
 SECTIONS {
-    . = 0x10000;
-    
-    .entry : {
-        *(.entry)
+    . = 0x100000;
+
+    _kernel_start = .;
+
+    .multiboot.text : {
+        *(.multiboot.text)
     }
-    
-    .text : {
-        KEEP(*(.text._start))
-        *(.text*)
+
+    .multiboot.data : {
+        *(.multiboot.data)
     }
-    
-    .rodata : {
-        *(.rodata*)
-    }
-    
-    .data : {
-        *(.data*)
-    }
-    
-    .bss : {
+
+    .multiboot.bss (NOLOAD) : {
         *(COMMON)
-        *(.bss*)
+        *(.multiboot.bss)
+        . = ALIGN(0x1000);
+    }
+
+    . += 0xC0000000;
+
+    .text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000) {
+        *(.text)
+    }
+
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xC0000000) {
+        *(.rodata)
+    }
+
+    .data ALIGN(4K) : AT(ADDR(.data) - 0xC0000000) {
+        *(.data)
+    }
+
+    .bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000) {
+        *(COMMON)
+        *(.bss)
     }
 
     . = ALIGN(0x1000);
-    _end = .;
-    
-    /DISCARD/ : {
-        *(.eh_frame)
-        *(.note*)
-        *(.comment*)
-    }
+    _kernel_end = .;
 }
