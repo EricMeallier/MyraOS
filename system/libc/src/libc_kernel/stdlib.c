@@ -66,3 +66,33 @@ char* kitoa(int value, char* str, int base) {
 
     return str;
 }
+
+char* utoa(uint32_t value, char* str, int base) {
+    char* ptr = str;
+    char* ptr1 = str;
+    char tmp;
+
+    if (value == 0) {
+        *ptr++ = '0';
+        *ptr = '\0';
+        return str;
+    }
+
+    while (value != 0) {
+        uint32_t digit = value % base;
+        *ptr++ = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        value /= base;
+    }
+
+    *ptr = '\0';
+
+    // Reverse the string
+    ptr--;
+    while (ptr1 < ptr) {
+        tmp = *ptr;
+        *ptr-- = *ptr1;
+        *ptr1++ = tmp;
+    }
+
+    return str;
+}

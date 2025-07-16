@@ -84,19 +84,39 @@ void vga_write_format(const char *fmt, const va_list argp) {
         switch (*fmt) {
             case 'd': {
                 int val = va_arg(argp, int);
+                
                 kitoa(val, buf, 10);
                 int len = kstrlen(buf);
-                for (int i = 0; i < pad_width - len; i++)
+
+                for (int i = 0; i < pad_width - len; i++) {
                     vga_put_char(zero_pad ? '0' : ' ');
+                }
+                    
                 vga_write(buf);
                 break;
             }
             case 'x': {
                 uint32_t val = va_arg(argp, uint32_t);
+
                 kitoa(val, buf, 16);
                 int len = kstrlen(buf);
-                for (int i = 0; i < pad_width - len; i++)
+
+                for (int i = 0; i < pad_width - len; i++) {
                     vga_put_char(zero_pad ? '0' : ' ');
+                }
+                    
+                vga_write(buf);
+                break;
+            }
+            case 'u': {
+                uint32_t val = va_arg(argp, uint32_t);
+                utoa(val, buf, 10);
+                int len = kstrlen(buf);
+
+                for (int i = 0; i < pad_width - len; i++) {
+                    vga_put_char(zero_pad ? '0' : ' ');
+                }
+                    
                 vga_write(buf);
                 break;
             }

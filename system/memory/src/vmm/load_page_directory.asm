@@ -1,8 +1,10 @@
 [bits 32]
 
-global load_page_directory
+section .multiboot.text
 
-load_page_directory:
+global _load_page_directory
+
+_load_page_directory:
     push ebp
     mov ebp, esp
 

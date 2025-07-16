@@ -4,37 +4,19 @@
 #include "panic/panic.h"
 #include "pmm/pmm.h"
 
-#define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))
-#define RECURSIVE_PAGE_TABLE_BASE 0xFFC00000
+extern uint32_t _kernel_start;
+extern uint32_t _kernel_end;
 
-extern void load_page_directory(uint32_t dir);
-extern void enable_paging(void);
+#define KERNEL_SIZE_IN_PAGES (((_kernel_end - _kernel_start) + PAGE_SIZE - 1) / PAGE_SIZE)
+
+extern void _load_page_directory(uint32_t page_dir);
+
+extern uint32_t* page_directory;
 
 static page_directory_t* kernel_page_directory;
 
 void vmm_init(void) {
-    kernel_page_directory = (page_directory_t*) pmm_alloc_page();
-    page_table_t* first_table = (page_table_t*) pmm_alloc_page();
-
-    for (size_t i = 0; i < PAGE_ENTRIES; i++) {
-        kernel_page_directory->entries[i] = 0;
-        first_table->entries[i] = 0;
-    }
-
-    // identity-map the first 4MB using 4KB pages
-    for (size_t i = 0; i < PAGE_ENTRIES; i++) {
-        uint32_t addr = i * PAGE_SIZE;
-        first_table->entries[i] = MAKE_ENTRY(addr, PAGE_PRESENT | PAGE_WRITE); 
-    }
-
-    kernel_page_directory->entries[0] = MAKE_ENTRY(first_table, PAGE_PRESENT | PAGE_WRITE);
-    kernel_page_directory->entries[PAGE_ENTRIES - 1] = MAKE_ENTRY(kernel_page_directory, PAGE_PRESENT | PAGE_WRITE);
-
-    load_page_directory((uint32_t) kernel_page_directory);
-
-    enable_paging();
-
-    kernel_page_directory = (page_directory_t*)0xFFFFF000;
+    kernel_page_directory = (page_directory_t*) 0xFFFFF000;
 }
 
 void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) {
@@ -75,4 +57,13 @@ void vmm_unmap_page(uint32_t virtual_addr) {
     page_table->entries[table_index] = 0;
 
     __asm__ volatile("invlpg (%0)" :: "r" (virtual_addr) : "memory");
+}
+
+uint32_t vmm_virt_to_phys(uint32_t virtual_addr) {
+    uint32_t pd_index = (virtual_addr) >> 22;                        
+    uint32_t pt_index = ((virtual_addr) >> 12) & 0x3FF;          
+
+    uint32_t* pt = (uint32_t*)(0xFFC00000 + (pd_index << 12));
+
+    return (pt[pt_index] & ~0xFFF) | ((virtual_addr) & 0xFFF); 
 }

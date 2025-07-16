@@ -1,22 +1,18 @@
 [bits 32]
 
-global enable_paging
-global disable_paging
+section .multiboot.text
 
-enable_paging:
-    push ebp
-    mov ebp, esp
+global _enable_paging
+global _disable_paging
 
+_enable_paging:
     mov eax, cr0
     or eax, 0x80000000
     mov cr0, eax
 
-    mov esp, ebp,
-    pop ebp
-
     ret
 
-disable_paging:
+_disable_paging:
     mov eax, cr0
     and eax, 0x7FFFFFFF
     mov cr0, eax

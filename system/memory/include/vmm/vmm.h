@@ -5,6 +5,11 @@
 
 #include "constants/mem_constants.h"
 
+#define RECURSIVE_PAGE_TABLE_BASE 0xFFC00000
+
+#define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))
+#define VIRT_TO_PHYS(addr) (((uint32_t*)(RECURSIVE_PAGE_TABLE_BASE + (((addr) >> 22) << 12))[(((addr) >> 12) & 0x3FF)] & ~0xFFF) | ((addr) & 0xFFF))
+
 // types
 typedef uint32_t page_table_entry_t;
 
@@ -32,13 +37,16 @@ typedef enum page_flags_t {
     PAGE_GLOBAL        = 0x100, // Global page (not flushed on CR3 switch)
 } page_flags_t;
 
-// init
-void vmm_init(void);
+// Only sets recursive map, sets global ptr, etc.
+void vmm_init(void);        
 
-// map a virtual address to a physical one
+// Mmap a virtual address to a physical one
 void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags);
 
-// unmap
+// Unmap
 void vmm_unmap_page(uint32_t virtual_addr);
+
+// Convert between a virtual addr to a physical one
+uint32_t vmm_virt_to_phys(uint32_t virtual_addr);
 
 #endif // VMM_H

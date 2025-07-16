@@ -9,4 +9,7 @@
 
 #define BYTE_SIZE 8
 
+#define KERNEL_PMA 0x100000
+#define KERNEL_VMA 0xC0000000
+
 #endif // MEM_CONSTANTS_H

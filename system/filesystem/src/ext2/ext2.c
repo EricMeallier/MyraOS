@@ -401,7 +401,7 @@ static bool resolve_path(ext2_fs_t *fs, char *path, inode_t *out_inode) {
     
     do {
         bool found = false;
-        dir_entry_t** entries;
+        dir_entry_t** entries = NULL;
         size_t count = read_dir_entry_list(fs, &current_inode, &entries);
         
         for (size_t i = 0; i < count; i++) {
@@ -425,10 +425,12 @@ static bool resolve_path(ext2_fs_t *fs, char *path, inode_t *out_inode) {
             kfree(name);
         }
 
-        for (size_t i = 0; i < count; i++) {
-            kfree(entries[i]); // each dir_entry
+        if (entries == NULL) {
+            for (size_t i = 0; i < count; i++) {
+                kfree(entries[i]); // each dir_entry
+            }
+            kfree(entries); // the array itself
         }
-        kfree(entries); // the array itself
 
         if (!found) {
             kfree(path_copy);

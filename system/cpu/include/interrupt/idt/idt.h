@@ -52,8 +52,7 @@ typedef struct {
 // idt setup
 void _idt_load(idt_descriptor_t* idt_descriptor);
 
-void idt_set_gate(uint8_t index, uint32_t base, uint16_t segment,
-                  uint8_t flags);
+void idt_set_gate(uint8_t index, uint32_t base, uint16_t segment, uint8_t flags);
 
 void idt_init(void);
 
