@@ -5,7 +5,7 @@
 static gdt_entry_t gdt[6];
 static gdt_ptr_t   gp;
 
-static tss_entry_t tss;
+tss_entry_t tss;
 
 /* defined in gdt_flush.asm */
 extern void _gdt_flush(uint32_t);
@@ -13,7 +13,7 @@ extern void _tss_flush(uint16_t);
 
 void gdt_init(void) {
     gp.limit = (sizeof(gdt_entry_t) * 6) - 1;
-    gp.base  = vmm_virt_to_phys((uint32_t) &gdt);
+    gp.base  = (uint32_t) &gdt;
 
     gdt_set_gate(0, 0, 0, 0, 0);                 /* null */
 

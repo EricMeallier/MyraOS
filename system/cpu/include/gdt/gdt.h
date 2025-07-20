@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#define GDT_KERNEL_CODE 0x08  /* index 1, RPL 0 */
+#define GDT_KERNEL_DATA 0x10  /* index 2, RPL 0 */
+#define GDT_USER_CODE   0x1B  /* index 3, RPL 3 */
+#define GDT_USER_DATA   0x23  /* index 4, RPL 3 */
+
 /* ───── GDT entry & pointer ─────────────────────────────────────── */
 typedef struct gdt_entry_t {
     uint16_t limit;
@@ -30,6 +35,8 @@ typedef struct tss_entry_t {
     uint32_t ldt;
     uint16_t trap, iomap;
 } __attribute__((packed)) tss_entry_t;
+
+extern tss_entry_t tss;
 
 void gdt_init(void);
 
