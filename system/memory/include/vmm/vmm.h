@@ -6,6 +6,7 @@
 #include "constants/mem_constants.h"
 
 #define RECURSIVE_PAGE_TABLE_BASE 0xFFC00000
+#define KERNEL_ENTRY_START 768
 
 #define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))
 #define VIRT_TO_PHYS(addr) (((uint32_t*)(RECURSIVE_PAGE_TABLE_BASE + (((addr) >> 22) << 12))[(((addr) >> 12) & 0x3FF)] & ~0xFFF) | ((addr) & 0xFFF))
@@ -36,6 +37,10 @@ typedef enum page_flags_t {
     PAGE_SIZE_4MB      = 0x80,  // 4MB page size (only for PDEs)
     PAGE_GLOBAL        = 0x100, // Global page (not flushed on CR3 switch)
 } page_flags_t;
+
+extern uint32_t* page_directory;
+
+extern page_directory_t* current_page_directory;
 
 // Only sets recursive map, sets global ptr, etc.
 void vmm_init(void);        
