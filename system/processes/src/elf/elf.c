@@ -64,10 +64,10 @@ bool elf_parse(void* elf_data, elf_load_info_t* out_info) {
         return false;
     }
 
-    elf_segment_t* segments_arr = kmalloc(sizeof(elf_segment_t) * header->e_phnum);
     size_t seg_count = 0;
-
+    elf_segment_t* segments_arr = kmalloc(sizeof(elf_segment_t) * header->e_phnum);
     elf32_phdr_t* phdrs = (elf32_phdr_t*) ((uint8_t*) elf_data + header->e_phoff);
+
     for (size_t i = 0; i < header->e_phnum; i++) {
         elf32_phdr_t* phdr = &phdrs[i];
         elf_segment_t segment;

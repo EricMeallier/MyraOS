@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "vmm/vmm.h"
+#include "exec/exec.h"
 
 typedef struct task_state_t {
     uint32_t eax, ebx, ecx, edx;
@@ -30,6 +31,6 @@ typedef struct process_t {
     uint32_t kernel_stack;
 } process_t;
 
-process_t* proc_create(const void* entry, size_t code_size, uint32_t code_addr);
+process_t* proc_create(exec_info_t* exec_info);
 
 #endif // PROCESS_H
