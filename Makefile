@@ -80,12 +80,16 @@ $(ISO_IMG): $(KERNEL_ELF) $(GRUB_CFG)
 # ──────────  Run targets  ──────────
 run: $(ISO_IMG) $(FS_IMG)
 	@echo "[QEMU] Running MyraOS"
-	@$(QEMU) -cdrom $(ISO_IMG) -m 128M
+	@$(QEMU) -cdrom $(ISO_IMG) \
+	        -drive file=$(FS_IMG),format=raw,if=ide,index=0 \
+	        -m 128M
 
 debug: DEBUG=1
 debug: $(ISO_IMG) $(FS_IMG)
 	@echo "[QEMU] Running MyraOS (GDB mode)"
-	@$(QEMU) -s -S -cdrom $(ISO_IMG) -m 128M
+	@$(QEMU) -s -S -cdrom $(ISO_IMG) \
+	        -drive file=$(FS_IMG),format=raw,if=ide,index=0 \
+	        -m 128M
 
 # ──────────  Clean  ──────────
 clean:

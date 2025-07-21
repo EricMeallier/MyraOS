@@ -30,6 +30,6 @@ typedef struct process_t {
     uint32_t kernel_stack;
 } process_t;
 
-process_t* process_create(const void* entry, size_t code_size);
+process_t* proc_create(const void* entry, size_t code_size, uint32_t code_addr);
 
 #endif // PROCESS_H

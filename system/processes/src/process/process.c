@@ -6,11 +6,10 @@
 #include "gdt/gdt.h"
 
 #define PROCESS_USER_STACK 0xBFFFFFFF
-#define PROCESS_CODE 0x00400000
 
 static size_t current_pid = 0;
 
-static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_phys, const void* entry_code, size_t code_size) {
+static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_phys, const void* entry_code, size_t code_size, uint32_t code_addr) {
     page_dir_virt->entries[PAGE_ENTRIES - 1] = (uint32_t) page_dir_phys | PAGE_PRESENT | PAGE_WRITE;
 
     uint32_t saved_cr3;
@@ -20,12 +19,12 @@ static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_ph
 
     for (size_t offset = 0; offset < code_size; offset += PAGE_SIZE) {
         uint32_t* frame = (uint32_t*) pmm_alloc_page();
-        vmm_map_page(PROCESS_CODE + offset, (uint32_t) frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+        vmm_map_page(code_addr + offset, (uint32_t) frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
 
         size_t copy_size = code_size - offset > PAGE_SIZE ? PAGE_SIZE : code_size - offset;
-        kmemcpy((void*)(PROCESS_CODE + offset), (const uint8_t*)entry_code + offset, copy_size);
+        kmemcpy((void*)(code_addr + offset), (const uint8_t*)entry_code + offset, copy_size);
 
-        vmm_map_page(PROCESS_CODE + offset, (uint32_t) frame, PAGE_PRESENT | PAGE_USER);
+        vmm_map_page(code_addr + offset, (uint32_t) frame, PAGE_PRESENT | PAGE_USER);
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
@@ -44,7 +43,7 @@ static void map_kernel_stack_child(uint32_t page_dir_phys, uint32_t kernel_stack
     __asm__ volatile("sti");
 }
 
-process_t* process_create(const void* entry, size_t code_size) {
+process_t* proc_create(const void* entry, size_t code_size, uint32_t code_addr) {
     __asm__ volatile("cli");
 
     process_t* process = (process_t*) kmalloc(sizeof(process_t));
@@ -60,7 +59,7 @@ process_t* process_create(const void* entry, size_t code_size) {
 
     // Copy the kernel to the page dir of the proc
     kmemcpy(&page_dir_virt->entries[KERNEL_ENTRY_START], &current_page_directory->entries[KERNEL_ENTRY_START], (PAGE_ENTRIES - KERNEL_ENTRY_START) * sizeof(uint32_t));
-    copy_user_code(page_dir_virt, (uint32_t) page_dir_phys, entry, code_size);
+    copy_user_code(page_dir_virt, (uint32_t) page_dir_phys, entry, code_size, code_addr);
 
     // Create and map the kernel stack
     uint32_t kernel_stack_phys = (uint32_t) pmm_alloc_page();
@@ -72,7 +71,7 @@ process_t* process_create(const void* entry, size_t code_size) {
     kmemset(task_state, 0, sizeof(task_state_t));
 
     task_state->esp = PROCESS_USER_STACK;
-    task_state->eip = PROCESS_CODE;
+    task_state->eip = code_addr;
     task_state->cs = GDT_USER_CODE;
     task_state->ds =
     task_state->es =
