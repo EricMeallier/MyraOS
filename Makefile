@@ -8,6 +8,7 @@ QEMU := qemu-system-i386
 SRC_DIR        := system
 OBJ_DIR        := build/obj
 ISO_DIR        := build/iso
+FS_IMG 		   := build/fs.img
 ISO_IMG        := build/MyraOS.iso
 KERNEL_ELF     := build/kernel.elf
 LINKER_SCRIPT  := linker.ld
@@ -54,6 +55,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm
 	@mkdir -p $(dir $@)
 	@$(ASM) -f elf32 $< -o $@
 
+$(FS_IMG):
+	@echo "[FS] Creating ext2 disk image"
+	@dd if=/dev/zero of=$(FS_IMG) bs=1M count=32
+	@mkfs.ext2 $(FS_IMG)
+
 # Kernel ELF
 $(KERNEL_ELF): $(ALL_OBJS) $(LINKER_SCRIPT)
 	@echo "[LD] Linking kernel ELF"
@@ -72,12 +78,12 @@ $(ISO_IMG): $(KERNEL_ELF) $(GRUB_CFG)
 	@grub2-mkrescue -o $(ISO_IMG) $(ISO_DIR) >/dev/null 2>&1
 
 # ──────────  Run targets  ──────────
-run: $(ISO_IMG)
+run: $(ISO_IMG) $(FS_IMG)
 	@echo "[QEMU] Running MyraOS"
 	@$(QEMU) -cdrom $(ISO_IMG) -m 128M
 
 debug: DEBUG=1
-debug: $(ISO_IMG)
+debug: $(ISO_IMG) $(FS_IMG)
 	@echo "[QEMU] Running MyraOS (GDB mode)"
 	@$(QEMU) -s -S -cdrom $(ISO_IMG) -m 128M
 
