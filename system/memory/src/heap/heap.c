@@ -125,10 +125,9 @@ void* krealloc(void* ptr, size_t size) {
 
     // allocate new block
     if (blocks_size < size) { 
-        kfree(ptr);
-
         void* new_ptr = kmalloc(size);
         kmemcpy(new_ptr, ptr, block->size);
+        kfree(ptr);
 
         return new_ptr;
     }
