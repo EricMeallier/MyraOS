@@ -6,13 +6,18 @@ extern syscall_handler
 
 global _syscall_stub
 _syscall_stub:
-    cli
+    ; Push the int num (required by the reg struct)
+    push 0
+    push 0x80
+
     pusha
 
-    xor eax, eax
-    mov ax, ds
-    push eax
+    push ds
+	push es
+	push fs
+	push gs
 
+    xor eax, eax
     mov ax, KERNEL_DATA_SEG
     mov ds, ax
     mov es, ax
@@ -25,13 +30,13 @@ _syscall_stub:
     call syscall_handler
     add esp, 4
 
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    pop gs
+	pop fs
+	pop es
+	pop ds
 
-    popa 
-    sti
+    popa
+
+    add esp, 8
     iret
     

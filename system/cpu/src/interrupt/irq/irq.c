@@ -22,7 +22,7 @@ void irq_install_handler(const int irq, void (*handler)(registers_t* regs)) {
 }
 
 void irq_handler(registers_t* regs) {
-    const uint32_t irq = regs->interrupt - IRQ_INTERRUPT_OFFSET;
+    const uint32_t irq = regs->int_no - IRQ_INTERRUPT_OFFSET;
 
     if (irq < IRQ_SIZE && irq_routines[irq]) {
         irq_routines[irq](regs);

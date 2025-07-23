@@ -43,10 +43,11 @@ typedef enum idt_flags {
 } idt_flags;
 
 typedef struct {
-    uint32_t ds;                                          // manual
-    uint32_t edi, esi, ebp, useless, ebx, edx, ecx, eax;  // pusha
-    uint32_t interrupt, error;                            // manual/automatic
-    uint32_t eip, cs, eflags, esp, ss;                    // CPU pushed
+    uint32_t gs, fs, es, ds;               // manually pushed
+    uint32_t edi, esi, ebp, esp;           // pusha
+    uint32_t ebx, edx, ecx, eax;
+    uint32_t int_no, err_code;             // manually
+    uint32_t eip, cs, eflags, useresp, ss; // CPU pushed
 } __attribute__((packed)) registers_t;
 
 // idt setup

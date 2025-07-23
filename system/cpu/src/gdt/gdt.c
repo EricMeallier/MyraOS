@@ -46,6 +46,6 @@ void gdt_set_gate(int i, uint32_t base, uint32_t limit, uint8_t access, uint8_t 
     gdt[i].base_high  = (base >> 24) & 0xFF;
 }
 
-void gdt_set_kernel_stack(uint32_t esp0) {
+void tss_set_kernel_stack(uint32_t esp0) {
     tss.esp0 = esp0;
 }

@@ -10,6 +10,7 @@ typedef uint32_t (*syscall_func_t)(uint32_t, uint32_t, uint32_t, uint32_t);
 
 static syscall_func_t syscall_table[SYSCALL_MAX];
 
+extern uint32_t sys_exit(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_write(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_read(uint32_t, uint32_t, uint32_t, uint32_t);
 
@@ -27,6 +28,7 @@ void syscall_init(void) {
         IDT_FLAG_PRESENT | IDT_FLAG_RING3 | IDT_FLAG_GATE_TASK_32BIT_INT
     );
 
+    register_syscall(SYS_EXIT, sys_exit);
     register_syscall(SYS_WRITE, sys_write);
     register_syscall(SYS_READ,  sys_read);
 }

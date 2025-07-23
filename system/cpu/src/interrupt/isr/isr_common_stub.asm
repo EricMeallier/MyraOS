@@ -8,10 +8,12 @@ global _isr_common_stub
 _isr_common_stub:
     pusha
 
-    xor eax, eax
-    mov ax, ds
-    push eax
+    push ds
+	push es
+	push fs
+	push gs
 
+    xor eax, eax
     mov ax, KERNEL_DATA_SEG
     mov ds, ax
     mov es, ax
@@ -24,11 +26,10 @@ _isr_common_stub:
     call isr_handler
     add esp, 4
 
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+	pop gs
+	pop fs
+	pop es
+	pop ds
 
     popa
 

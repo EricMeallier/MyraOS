@@ -22,6 +22,8 @@ extern _irq_common_stub
 %macro IRQ_STUB 1
 _irq%1:
     cli
+    
+    push 0
     push byte %1 + 32
 
     jmp _irq_common_stub

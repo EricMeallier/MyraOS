@@ -44,4 +44,6 @@ void gdt_set_gate(int i, uint32_t base, uint32_t limit, uint8_t access, uint8_t 
 
 void gdt_set_kernel_stack(uint32_t esp0);
 
+void tss_set_kernel_stack(uint32_t esp0);
+
 #endif

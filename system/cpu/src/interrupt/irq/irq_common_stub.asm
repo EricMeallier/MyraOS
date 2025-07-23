@@ -9,10 +9,12 @@ global _irq_common_stub
 _irq_common_stub:
     pusha
 
-    xor eax, eax
-    mov ax, ds
-    push eax
+    push ds
+	push es
+	push fs
+	push gs
 
+    xor eax, eax
     mov ax, KERNEL_DATA_SEG
     mov ds, ax
     mov es, ax
@@ -25,15 +27,13 @@ _irq_common_stub:
     call irq_handler
     add esp, 4
 
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    pop gs
+	pop fs
+	pop es
+	pop ds
 
     popa
-    add esp, 4
-    sti
+    add esp, 8
 
     iret
 
