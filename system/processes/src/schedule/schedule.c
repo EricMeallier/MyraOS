@@ -29,15 +29,19 @@ void schedule_next(void) {
         }
     }
 
-    if (!next_proc) {
-        kpanic("No process to run");
-    }
-
     if (schedule_current_proc && schedule_current_proc->state != PROCESS_TERMINATED) {
         schedule_proc(schedule_current_proc);
     } else if (schedule_current_proc) {
         kfree(schedule_current_proc);
         schedule_current_proc = NULL;
+    }
+
+    if (!next_proc) {
+        if (!schedule_current_proc) {
+            kpanic("No process to run");
+        } else {
+            next_proc = schedule_current_proc;
+        }
     }
 
     next_proc->state = PROCESS_RUNNING;
