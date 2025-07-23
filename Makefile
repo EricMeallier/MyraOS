@@ -14,10 +14,10 @@ KERNEL_ELF     := build/kernel.elf
 LINKER_SCRIPT  := linker.ld
 
 # ──────────  Source discovery  ──────────
-SRC_FILES  := $(shell find $(SRC_DIR) -name '*.c')
+SRC_FILES  := $(filter-out $(shell find $(SRC_DIR)/libc/src/libc_user -name '*.c'), $(shell find $(SRC_DIR) -name '*.c'))
 OBJ_FILES  := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(SRC_FILES:.c=.o))
 
-INCLUDE_DIRS  := $(shell find $(SRC_DIR) -type d -name include)
+INCLUDE_DIRS := $(filter-out $(SRC_DIR)/libc/include/libc_user, $(shell find $(SRC_DIR) -type d -name include))
 INCLUDE_FLAGS := $(foreach d,$(INCLUDE_DIRS),-I"$d")
 
 # All .asm sources

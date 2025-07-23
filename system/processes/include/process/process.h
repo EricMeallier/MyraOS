@@ -7,9 +7,12 @@
 #include "vmm/vmm.h"
 #include "exec/exec.h"
 
-#define PROCESS_USER_STACK 0xBFFFFFFF
+#define PROCESS_STACK_START 0xBFFFFFFF
 #define KERNEL_STACK_BASE 0xC0400000
 #define KERNEL_STACK_SIZE 0x2000
+
+#define PROCESS_HEAP_START 0x500000
+#define PROCESS_HEAP_SIZE 0x100000
 
 typedef struct task_state_t {
     uint32_t eax, ebx, ecx, edx;

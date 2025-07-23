@@ -47,7 +47,7 @@ static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_ph
     __asm__ volatile("sti");
 }
 
-static void map_kernel_stack_child(uint32_t page_dir_phys, uint32_t kernel_stack_virt, uint32_t kernel_stack_phys) {
+static void map_proc_segments(uint32_t page_dir_phys, uint32_t kernel_stack_virt, uint32_t kernel_stack_phys) {
     uint32_t saved_cr3;
     __asm__ volatile("mov %%cr3, %0" : "=r"(saved_cr3));
     __asm__ volatile("cli");
@@ -57,10 +57,15 @@ static void map_kernel_stack_child(uint32_t page_dir_phys, uint32_t kernel_stack
 
     // Map 16KB user stack
     for (size_t i = 0; i < 4; i++) {
-        uint32_t stack_page_virt = PROCESS_USER_STACK - i * PAGE_SIZE;
+        uint32_t stack_page_virt = PROCESS_STACK_START - i * PAGE_SIZE;
         uint32_t frame = (uint32_t) pmm_alloc_page();
 
         vmm_map_page(stack_page_virt, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+    }
+
+    for (uint32_t addr = PROCESS_HEAP_START; addr < PROCESS_HEAP_START + PROCESS_HEAP_SIZE; addr += PAGE_SIZE) {
+        uint32_t frame = (uint32_t) pmm_alloc_page();
+        vmm_map_page(addr, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
@@ -88,12 +93,12 @@ process_t* proc_create(exec_info_t* exec_info) {
     uint32_t kernel_stack_phys = (uint32_t) pmm_alloc_page();
     uint32_t kernel_stack_virt = KERNEL_STACK_BASE - (current_pid * KERNEL_STACK_SIZE);
     vmm_map_page(kernel_stack_virt - PAGE_SIZE, kernel_stack_phys, PAGE_PRESENT | PAGE_WRITE);
-    map_kernel_stack_child((uint32_t) page_dir_phys, kernel_stack_virt, kernel_stack_phys);
+    map_proc_segments((uint32_t) page_dir_phys, kernel_stack_virt, kernel_stack_phys);
 
     task_state_t* task_state = (task_state_t*) kmalloc(sizeof(task_state_t));
     kmemset(task_state, 0, sizeof(task_state_t));
 
-    task_state->esp = PROCESS_USER_STACK;
+    task_state->esp = PROCESS_STACK_START;
     task_state->eip = (uint32_t) exec_info->entry_point;
     task_state->cs = GDT_USER_CODE;
     task_state->ds =
