@@ -38,4 +38,7 @@ extern void keyboard_handler(registers_t* regs);
 // buffer
 extern bool keyboard_read_event(key_event_t* out);
 
+// read blocking
+extern void keyboard_read_blocking(void);
+
 #endif  // KEYBOARD_H

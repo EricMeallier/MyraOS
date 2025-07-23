@@ -38,6 +38,6 @@ typedef struct exec_info_t {
 
 void exec_parse_info_elf(elf_load_info_t* elf_load_info, exec_info_t* out_info);
 
-void exec_parse_info_bin(void* file_data, size_t file_size, void* entry_point, exec_info_t* out_info);
+void exec_parse_info_bin(void* file_data, size_t file_size, uint32_t load_address, exec_info_t* out_info);
 
 #endif // EXEC_H

@@ -21,7 +21,7 @@ void exec_parse_info_elf(elf_load_info_t* elf_load_info, exec_info_t* out_info) 
     }
 }
 
-void exec_parse_binary(void* file_data, size_t file_size, uint32_t load_address, exec_info_t* out_info) {
+void exec_parse_info_bin(void* file_data, size_t file_size, uint32_t load_address, exec_info_t* out_info) {
     out_info->format = EXEC_FORMAT_BINARY;
     out_info->entry_point = (void*) load_address;
     out_info->segment_count = 1;

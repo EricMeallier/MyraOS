@@ -61,8 +61,21 @@ bool keyboard_read_event(key_event_t *out) {
     return cb_read(&keyboard_buffer, out);
 }
 
-static void update_modifier_state(uint8_t make_code, bool released)
-{
+void keyboard_read_blocking(void) {
+    key_event_t event;
+
+    while (true) {
+        if (keyboard_read_event(&event)) {
+            if (event.ascii_value != 0) {
+                break;
+            }
+        }
+
+        __asm__ volatile ("hlt");
+    }
+}
+
+static void update_modifier_state(uint8_t make_code, bool released) {
     if (make_code == KEY_LEFT_SHIFT || make_code == KEY_RIGHT_SHIFT) {
         released ? is_shift_pressed-- : is_shift_pressed++;
     } else if (make_code == KEY_LEFT_CTRL || (make_code == KEY_RIGHT_CTRL && extended)) {
