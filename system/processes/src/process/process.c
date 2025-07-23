@@ -5,9 +5,6 @@
 #include "libc_kernel/string.h"
 #include "pmm/pmm.h"
 
-#define PROCESS_USER_STACK 0xBFFFFFFF
-#define PROCESS_KERNEL_STACK 0xC0400000
-
 static size_t current_pid = 0;
 
 static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_phys, exec_info_t* exec_info) {
@@ -58,6 +55,14 @@ static void map_kernel_stack_child(uint32_t page_dir_phys, uint32_t kernel_stack
 
     vmm_map_page(kernel_stack_virt - PAGE_SIZE, kernel_stack_phys, PAGE_PRESENT | PAGE_WRITE);
 
+    // Map 16KB user stack
+    for (size_t i = 0; i < 4; i++) {
+        uint32_t stack_page_virt = PROCESS_USER_STACK - i * PAGE_SIZE;
+        uint32_t frame = (uint32_t) pmm_alloc_page();
+
+        vmm_map_page(stack_page_virt, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+    }
+
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
     __asm__ volatile("sti");
 }
@@ -81,7 +86,7 @@ process_t* proc_create(exec_info_t* exec_info) {
 
     // Create and map the kernel stack
     uint32_t kernel_stack_phys = (uint32_t) pmm_alloc_page();
-    uint32_t kernel_stack_virt = 0xC0400000 + current_pid * 0x2000;
+    uint32_t kernel_stack_virt = KERNEL_STACK_BASE - (current_pid * KERNEL_STACK_SIZE);
     vmm_map_page(kernel_stack_virt - PAGE_SIZE, kernel_stack_phys, PAGE_PRESENT | PAGE_WRITE);
     map_kernel_stack_child((uint32_t) page_dir_phys, kernel_stack_virt, kernel_stack_phys);
 
