@@ -36,11 +36,7 @@ void kernel_main(void) {
 
     pata_init();
 
-    kprint("Welcome to ");
-    kset_color(COLOR_GREEN);
-    kprint("MyraOS");
-    kset_color(COLOR_WHITE);
-    kprintln(" v0.1");
+    kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
 
     datetime_t dt = rtc_get_system_datetime();
     kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n",

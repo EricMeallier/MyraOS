@@ -8,10 +8,20 @@
 #include "libc_kernel/stdlib.h"
 #include "libc_kernel/string.h"
 
+static enum {
+    ANSI_NONE,
+    ANSI_ESC,
+    ANSI_CSI
+} ansi_state = ANSI_NONE;
+
+static char ansi_buf[16];
+static size_t ansi_len = 0;
+
 volatile uint16_t *video_memory = VGA_VIDEO_MEMORY;
 volatile uint8_t color = VGA_COLOR_WHITE;
 
-bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos);
+static bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos);
+static void apply_ansi_color(const char* code);
 
 void vga_clear_screen(void) {
     const uint16_t blank = ' ' | color << 8;
@@ -34,7 +44,46 @@ void vga_clear(size_t n) {
 }
 
 void vga_put_char(const char c) {
-    uint16_t cursor_pos = vga_get_cursor();
+    static uint16_t cursor_pos;
+
+    if (ansi_state != ANSI_NONE) {
+        if (ansi_state == ANSI_ESC && c == '[') {
+            ansi_state = ANSI_CSI;
+            ansi_len = 0;
+            return;
+        }
+
+        if (ansi_state == ANSI_CSI) {
+            if ((c >= '0' && c <= '9') || c == ';') {
+                if (ansi_len < sizeof(ansi_buf) - 1) {
+                    ansi_buf[ansi_len++] = c;
+                }
+                return;
+            } else {
+                ansi_buf[ansi_len] = 0;
+
+                if (c == 'm') {
+                    apply_ansi_color(ansi_buf);
+                } else if (c == 'J') {
+                    vga_clear_screen();
+                }
+
+                ansi_state = ANSI_NONE;
+                return;
+            }
+        }
+
+        ansi_state = ANSI_NONE;
+        return;
+    }
+
+    if (c == '\x1b') {
+        ansi_state = ANSI_ESC;
+        return;
+    }
+
+    // Existing logic
+    cursor_pos = vga_get_cursor();
     const uint16_t char_with_color = c | color << 8;
 
     if (cursor_pos == VGA_WIDTH * VGA_HEIGHT) {
@@ -42,9 +91,7 @@ void vga_put_char(const char c) {
         cursor_pos -= VGA_WIDTH;
     }
 
-    if (check_for_escape_chars(c, cursor_pos)) {
-        return;
-    }
+    if (check_for_escape_chars(c, cursor_pos)) return;
 
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
@@ -200,7 +247,7 @@ void vga_write_hex(const uint32_t num) {
     }
 }
 
-bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
+static bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
     switch (c) {
         case '\n':
             cursor_pos = cursor_pos + (VGA_WIDTH - cursor_pos % VGA_WIDTH);
@@ -214,6 +261,22 @@ bool check_for_escape_chars(const uint16_t c, uint16_t cursor_pos) {
 
     vga_set_cursor(cursor_pos);
     return true;
+}
+
+static void apply_ansi_color(const char* code) {
+    int val = katoi(code);
+
+    switch (val) {
+        case 0:  vga_set_color(VGA_COLOR_LIGHT_GREY); break; // reset
+        case 30: vga_set_color(VGA_COLOR_BLACK); break;
+        case 31: vga_set_color(VGA_COLOR_RED); break;
+        case 32: vga_set_color(VGA_COLOR_GREEN); break;
+        case 33: vga_set_color(VGA_COLOR_BROWN); break;
+        case 34: vga_set_color(VGA_COLOR_BLUE); break;
+        case 35: vga_set_color(VGA_COLOR_MAGENTA); break;
+        case 36: vga_set_color(VGA_COLOR_CYAN); break;
+        case 37: vga_set_color(VGA_COLOR_WHITE); break;
+    }
 }
 
 void vga_set_color(const uint8_t new_color) { color = new_color; }

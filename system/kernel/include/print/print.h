@@ -8,12 +8,23 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-typedef enum color_t { 
-    COLOR_WHITE,
-    COLOR_YELLOW,
-    COLOR_RED,
-    COLOR_GREEN,
+typedef enum color_t {
+    COLOR_BLACK,
     COLOR_BLUE,
+    COLOR_GREEN,
+    COLOR_CYAN,
+    COLOR_RED,
+    COLOR_MAGENTA,
+    COLOR_BROWN,
+    COLOR_LIGHT_GREY,
+    COLOR_DARK_GREY,
+    COLOR_LIGHT_BLUE,
+    COLOR_LIGHT_GREEN,
+    COLOR_LIGHT_CYAN,
+    COLOR_LIGHT_RED,
+    COLOR_LIGHT_MAGENTA,
+    COLOR_YELLOW,
+    COLOR_WHITE,
 } color_t;
 
 // print
