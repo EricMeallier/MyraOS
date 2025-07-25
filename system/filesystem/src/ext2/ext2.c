@@ -16,12 +16,14 @@
 #define IS_REG(mode) (((mode) & 0xF000) == EXT2_S_IFREG)
 #define IS_DIR(mode) (((mode) & 0xF000) == EXT2_S_IFDIR)
 
+ext2_fs_t* root_fs;
+
 static uint32_t block_to_lba(ext2_fs_t* fs, uint32_t block_num);
 static void read_block_group_desc(ext2_fs_t* fs);
 static bool read_inode(ext2_fs_t* fs, size_t inode_index, inode_t* out_inode);
 static size_t read_dir_entry_list(ext2_fs_t* fs, inode_t* inode, dir_entry_t*** dir_entries);
 static void read_dir_entry(ext2_fs_t* fs, inode_t* inode, uint16_t start_offset, dir_entry_t** dir_entry);
-static bool resolve_path(ext2_fs_t* fs, char* path, inode_t* inode);
+static bool resolve_path(ext2_fs_t* fs, const char* path, inode_t* inode);
 
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     fs->superblock = kmalloc(sizeof(superblock_t));
@@ -48,7 +50,7 @@ bool ext2_mount(ext2_fs_t* fs, block_device_t* device) {
     return true;
 }
 
-uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size, bool* succeeded) {
+uint8_t* ext2_read_file(ext2_fs_t* fs, const char* path, size_t* out_size, bool* succeeded) {
     *succeeded = false;
 
     inode_t file_inode;
@@ -371,7 +373,7 @@ static void read_dir_entry(ext2_fs_t* fs, inode_t* inode, uint16_t offset, dir_e
     kfree(block);
 }
 
-static bool resolve_path(ext2_fs_t *fs, char *path, inode_t *out_inode) {
+static bool resolve_path(ext2_fs_t *fs, const char *path, inode_t *out_inode) {
     if (kstrcmp(path, "/") == 0) {
         return read_inode(fs, EXT2_ROOT_INODE, out_inode);
     }

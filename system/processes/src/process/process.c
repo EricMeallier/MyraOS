@@ -8,7 +8,6 @@
 static size_t current_pid = 0;
 
 static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_phys, exec_info_t* exec_info) {
-    // We have to remap here, keep it here for now 
     page_dir_virt->entries[PAGE_ENTRIES - 1] = (uint32_t) page_dir_phys | PAGE_PRESENT | PAGE_WRITE;
 
     uint32_t saved_cr3;

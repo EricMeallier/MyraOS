@@ -148,11 +148,14 @@ typedef struct ext2_fs_t {
     block_device_t* device;
 } ext2_fs_t;
 
+// TODO: add VFS
+extern ext2_fs_t* root_fs;
+
 // Mount
 bool ext2_mount(ext2_fs_t* fs, block_device_t* device);
 
 // Files
-uint8_t* ext2_read_file(ext2_fs_t* fs, char* path, size_t* out_size, bool* succeeded);
+uint8_t* ext2_read_file(ext2_fs_t* fs, const char* path, size_t* out_size, bool* succeeded);
 
 size_t ext2_get_file_size(ext2_fs_t* fs, char* path);
 

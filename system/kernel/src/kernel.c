@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#include "ext2/ext2.h"
 #include "gdt/gdt.h"
 #include "heap/heap.h"
 #include "interrupt/idt/idt.h"
@@ -12,7 +13,7 @@
 #include "pmm/pmm.h"
 #include "print/print.h"
 #include "rtc/rtc.h"
-#include "shell.h"
+#include "schedule/schedule.h"
 #include "vmm/vmm.h"
 
 void kernel_main(void) {
@@ -48,7 +49,15 @@ void kernel_main(void) {
             dt.weekday
         );
 
-    shell_run();
+    block_device_t* block_device = block_get_device("hd0");
+    if (!block_device) {
+        klog_error("hd0 not found");
+    }
+
+    root_fs = (ext2_fs_t*) kmalloc(sizeof(ext2_fs_t));
+    if (!ext2_mount(root_fs, block_device)) {
+        klog_error("FS mount failed");
+    }
 
     while (true) {
         __asm__ volatile("hlt");
