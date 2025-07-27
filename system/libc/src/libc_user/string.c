@@ -58,3 +58,42 @@ int strcmp(const char* s1, const char* s2) {
 
     return *(unsigned char*)s1 - *(unsigned char*)s2;
 }
+
+char* strtok(char* str, const char* delim) {
+    static char* next = NULL;
+    if (str) next = str;
+    if (!next) return NULL;
+
+    // Skip leading delimiters
+    while (*next && strchr(delim, *next)) next++;
+    if (*next == '\0') {
+        return NULL;
+    }
+
+    char* token_start = next;
+
+    // Find end of token
+    while (*next && !strchr(delim, *next)) {
+        next++;
+    }
+
+    if (*next) {
+        *next = '\0';
+        next++;
+    } else {
+        next = NULL;
+    }
+
+    return token_start;
+}
+
+char* strchr(const char* str, int c) {
+    while (*str) {
+        if (*str == (char)c) {
+            return (char*) str;
+        }
+        str++;
+    }
+
+    return NULL;
+}

@@ -14,6 +14,7 @@
 #include "print/print.h"
 #include "rtc/rtc.h"
 #include "schedule/schedule.h"
+#include "tty/tty.h"
 #include "vmm/vmm.h"
 
 void kernel_main(void) {
@@ -33,13 +34,14 @@ void kernel_main(void) {
     rtc_init();
 
     keyboard_driver_install();
+    tty_init();
 
     pata_init();
 
     kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
 
     datetime_t dt = rtc_get_system_datetime();
-    kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n",
+    kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n\n",
             dt.hour, dt.minute, dt.second,
             dt.day, dt.month, dt.year,
             dt.weekday
@@ -54,6 +56,23 @@ void kernel_main(void) {
     if (!ext2_mount(root_fs, block_device)) {
         klog_error("FS mount failed");
     }
+
+    size_t shell_elf_size = 0;
+    bool succeeded = true;
+    void* shell_elf_data = (void*) ext2_read_file(root_fs, "/bin/shell.elf", &shell_elf_size, &succeeded);
+    if (!succeeded) {
+        klog_error("Loading shell ELF failed");
+    }
+
+    elf_load_info_t shell_load_info;
+    if (!elf_parse(shell_elf_data, &shell_load_info)) {
+        klog_error("ELF parsing failed");
+    }
+
+    exec_info_t shell_exec_info;
+    exec_parse_info_elf(&shell_load_info, &shell_exec_info);
+
+    schedule_init(&shell_exec_info);
 
     while (true) {
         __asm__ volatile("hlt");

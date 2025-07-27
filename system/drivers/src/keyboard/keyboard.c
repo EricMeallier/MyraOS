@@ -2,7 +2,7 @@
 
 #include "interrupt/irq/irq.h"
 #include "io/port_io.h"
-#include "vga/vga.h"
+#include "print/print.h"
 
 circular_buffer_t keyboard_buffer;
 

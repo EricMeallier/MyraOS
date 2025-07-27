@@ -6,22 +6,20 @@
 #include "panic/panic.h"
 
 static circular_buffer_t processes_buffer;
-static bool is_schedule_ready;
-
 process_t* schedule_current_proc;
 
 extern void _switch_to_proc_space(uint32_t entry, uint32_t user_stack, uint32_t user_stack_top, uint32_t page_dir_phys);
 
-void schedule_init(void) {
+void schedule_init(exec_info_t* initial_proc) {
     cb_init(&processes_buffer, sizeof(process_t*), SCHEDULE_MAX_COUNT);
-    is_schedule_ready = true;
+
+    process_t* proc = proc_create(initial_proc);
+    schedule_proc(proc);
+
+    schedule_next();
 }
 
 void schedule_next(void) {
-    if (!is_schedule_ready) {
-        return;
-    }
-
     process_t* next_proc = NULL;
     while (cb_read(&processes_buffer, &next_proc)) {
         if (next_proc->state != PROCESS_TERMINATED) {

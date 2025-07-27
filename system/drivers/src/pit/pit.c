@@ -2,10 +2,13 @@
 
 #include "io/port_io.h"
 #include "interrupt/irq/irq.h"
+#include "input/input.h"
 #include "schedule/schedule.h"
 
 #define PIT_CHANNEL_0_DATA_PORT 0x40
 #define PIT_CONTROL_PORT 0x43
+
+#define RING_3 0x3
 
 static uint64_t tick_count = 0;
 
@@ -24,8 +27,12 @@ void pit_handler(registers_t* regs) {
 
     outb(0x20, 0x20);
 
-    schedule_save_context(regs);
-    schedule_next();
+    input_process();
+
+    if ((regs->cs & RING_3) == RING_3) {
+        schedule_save_context(regs);
+        schedule_next();
+    }
 }
 
 uint64_t pit_ticks(void) {

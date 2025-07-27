@@ -9,7 +9,7 @@
 extern process_t* schedule_current_proc;
 
 // Init multiprocessing data structure and memory
-void schedule_init(void);
+void schedule_init(exec_info_t* initial_proc);
 
 // Switch to the next process in the data structure
 void schedule_next(void);
