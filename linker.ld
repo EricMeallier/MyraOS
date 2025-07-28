@@ -6,17 +6,21 @@ SECTIONS {
 
     _kernel_start = .;
 
-    .multiboot.text : {
-        *(.multiboot.text)
+    .multiboot ALIGN(8) : {
+        KEEP(*(.multiboot))
     }
 
-    .multiboot.data : {
-        *(.multiboot.data)
+    .boot.text : {
+        *(.boot.text)
     }
 
-    .multiboot.bss (NOLOAD) : {
+    .boot.data : {
+        *(.boot.data)
+    }
+
+    .boot.bss (NOLOAD) : {
         *(COMMON)
-        *(.multiboot.bss)
+        *(.boot.bss)
         . = ALIGN(0x1000);
     }
 

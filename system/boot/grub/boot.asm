@@ -12,7 +12,7 @@ stack_bottom:
 resb 8192 * 8
 stack_top:
 
-section .multiboot.text
+section .boot.text
 global _start
 _start:
     cli
@@ -34,6 +34,9 @@ higher_half:
     push ebx
     push eax
     xor ebp, ebp
+
+    extern multiboot_info_addr
+    mov [multiboot_info_addr], ebx
     
     extern kernel_main
     call kernel_main

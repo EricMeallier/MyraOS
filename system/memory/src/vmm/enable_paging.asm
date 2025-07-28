@@ -1,6 +1,6 @@
 [bits 32]
 
-section .multiboot.text
+section .boot.text
 
 global _enable_paging
 global _disable_paging

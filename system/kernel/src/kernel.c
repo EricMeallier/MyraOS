@@ -17,6 +17,9 @@
 #include "tty/tty.h"
 #include "vmm/vmm.h"
 
+extern uint32_t multiboot_info_addr;
+extern void parse_multiboot_info(uint32_t addr);
+
 void kernel_main(void) {
     pmm_init();
     vmm_init();
@@ -37,15 +40,6 @@ void kernel_main(void) {
     tty_init();
 
     pata_init();
-
-    kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
-
-    datetime_t dt = rtc_get_system_datetime();
-    kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n\n",
-            dt.hour, dt.minute, dt.second,
-            dt.day, dt.month, dt.year,
-            dt.weekday
-        );
 
     block_device_t* block_device = block_get_device("hd0");
     if (!block_device) {
@@ -71,6 +65,17 @@ void kernel_main(void) {
 
     exec_info_t shell_exec_info;
     exec_parse_info_elf(&shell_load_info, &shell_exec_info);
+
+    kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
+
+    datetime_t dt = rtc_get_system_datetime();
+    kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n\n",
+            dt.hour, dt.minute, dt.second,
+            dt.day, dt.month, dt.year,
+            dt.weekday
+        );
+
+    parse_multiboot_info(multiboot_info_addr);
 
     schedule_init(&shell_exec_info);
 

@@ -1,6 +1,6 @@
 [bits 32]
 
-section .multiboot.text
+section .boot.text
 
 global _load_page_directory
 
