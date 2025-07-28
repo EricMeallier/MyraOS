@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include "vmm/vmm.h"
+#include "fb/fb.h"
 
 #define MB_TAG_TYPE_FRAMEBUFFER 8
 
@@ -40,12 +41,14 @@ void parse_multiboot_info(uint32_t addr) {
                 vmm_map_page(fb_phys + i, fb_phys + i, PAGE_PRESENT | PAGE_WRITE);
             }
 
-            volatile uint32_t* framebuffer = (volatile uint32_t*) fb_phys;
-            for (uint32_t y = 0; y < fb->framebuffer_height; y++) {
-                for (uint32_t x = 0; x < fb->framebuffer_width; x++) {
-                    framebuffer[y * (fb->framebuffer_pitch / sizeof(uint32_t)) + x] = 0xFF | ((x * 255 / fb->framebuffer_width) << 16) | ((y * 255 / fb->framebuffer_height));
-                }
-            }
+            fb_info_t fb_info = {
+                .addr = (uint8_t*) fb_phys,
+                .pitch = fb->framebuffer_pitch,
+                .width = fb->framebuffer_width,
+                .height = fb->framebuffer_height,
+                .bpp = fb->framebuffer_bpp
+            };
+            fb_init(fb_info);
         }
 
         addr += (size + 7) & ~7; // 8-byte align
