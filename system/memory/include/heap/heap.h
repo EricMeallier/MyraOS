@@ -8,8 +8,8 @@
 #include "constants/mem_constants.h"
 
 extern uint8_t _kernel_end;
-#define HEAP_START_ADDR (((uintptr_t)&_kernel_end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
-#define HEAP_SIZE       0x400000  // 4MB heap
+#define HEAP_START_ADDR 0xC1000000  // 16MB into higher-half
+#define HEAP_SIZE 0x400000          // 4MB heap
 
 typedef struct heap_block_t {
     uint32_t size;

@@ -3,6 +3,7 @@
 #include "libc_kernel/string.h"
 #include "assert/assert.h"
 #include "pmm/pmm.h"
+#include "vmm/vmm.h"
 
 #define GET_METADATA_ADDR(block) ((void*) ((uintptr_t) block + sizeof(heap_block_t)))
 
@@ -12,6 +13,12 @@ heap_block_t* heap_start;
 heap_block_t* heap_end;
 
 void heap_init(uintptr_t start, size_t size) {
+    for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
+        uintptr_t virt = start + offset;
+        uintptr_t phys = pmm_alloc_page();
+        vmm_map_page(virt, phys, PAGE_PRESENT | PAGE_WRITE);
+    }
+
     heap_start = (heap_block_t*) start;
 
     heap_start->size = size - sizeof(heap_block_t);
@@ -22,11 +29,11 @@ void heap_init(uintptr_t start, size_t size) {
 }
 
 void* kmalloc(size_t size) {
-    if (size == 0) {
+    if (size == 0 || size > HEAP_SIZE) {
         return NULL;
     }
 
-    // align the size to fit 32 bits
+    // align the size to fit 4 bytes
     size = (size + 3) & ~3;
 
     heap_block_t* curr_block = heap_start;
@@ -35,12 +42,15 @@ void* kmalloc(size_t size) {
     }
 
     if (curr_block == NULL) {
-        curr_block = (heap_block_t*) pmm_alloc_page();
-
-        // page alloc failed
-        if (curr_block == NULL) {
+        uint32_t* curr_block_phys = (uint32_t*) pmm_alloc_page();
+        if (curr_block_phys == NULL) {
             return NULL;
         }
+        
+        heap_end = (heap_block_t*)((uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t));
+        vmm_map_page((uintptr_t) heap_end, (uint32_t) curr_block_phys, PAGE_PRESENT | PAGE_WRITE);
+
+        curr_block = heap_end;
     
         // init the new block
         curr_block->size = PAGE_SIZE - sizeof(heap_block_t);
