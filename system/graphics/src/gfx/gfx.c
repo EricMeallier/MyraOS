@@ -1,7 +1,5 @@
 #include "gfx/gfx.h"
 
-#include <stddef.h>
-
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 
@@ -64,6 +62,40 @@ void gfx_draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, argb
 void gfx_fill_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, argb_t color) {
     for (uint32_t cy = y; cy < y + height; cy++) {
         gfx_draw_line(x, cy, x + width, cy, color);
+    }
+}
+
+void gfx_draw_circle(uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
+    int x = radius;
+    int y = 0;
+    int err = 0;
+
+    while (x >= y) {
+        gfx_draw_pixel(cx + x, cy + y, color);
+        gfx_draw_pixel(cx + y, cy + x, color);
+        gfx_draw_pixel(cx - y, cy + x, color);
+        gfx_draw_pixel(cx - x, cy + y, color);
+        gfx_draw_pixel(cx - x, cy - y, color);
+        gfx_draw_pixel(cx - y, cy - x, color);
+        gfx_draw_pixel(cx + y, cy - x, color);
+        gfx_draw_pixel(cx + x, cy - y, color);
+
+        y++;
+        err += 1 + 2*y;
+        if (2*(err - x) + 1 > 0) {
+            x--;
+            err += 1 - 2*x;
+        }
+    }
+}
+
+void gfx_fill_circle(uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
+    for (int y = -radius; y <= (int)radius; y++) {
+        for (int x = -radius; x <= (int)radius; x++) {
+            if (x * x + y * y <= (int)(radius * radius)) {
+                gfx_draw_pixel(cx + x, cy + y, color);
+            }
+        }
     }
 }
 
