@@ -5,7 +5,8 @@ An operating system written in C/ASM!
 - Bootloader
 - Paging
 - Drivers: Keyboard, VGA, RTC, PIT, Block device
-- File system with read support (EXT2), I'm planning to add write in the future
+- File system with read support (EXT2), I'm planning to add write support in the future
+- Processes and multiprocessing
 
 # What's next
-- User space!
+- GUI!
