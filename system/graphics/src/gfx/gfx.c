@@ -67,6 +67,20 @@ void gfx_fill_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, argb
     }
 }
 
+void gfx_draw_polygon(const uint32_t* xs, const uint32_t* ys, size_t count, argb_t color) {
+    uint32_t lx = xs[0];
+    uint32_t ly = ys[0];
+
+    for (size_t i = 1; i < count; i++) {
+        gfx_draw_line(lx, ly, xs[i], ys[i], color);
+
+        lx = xs[i];
+        ly = ys[i];
+    }
+
+    gfx_draw_line(lx, ly, xs[0], ys[0], color);
+}
+
 void gfx_clear(argb_t color) {
     for (uint32_t y = 0; y < fb_info.height; y++) {
         for (uint32_t x = 0; x < fb_info.width; x++) {
