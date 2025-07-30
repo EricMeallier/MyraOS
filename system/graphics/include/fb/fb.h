@@ -6,7 +6,7 @@
 typedef uint32_t argb_t;
 
 typedef struct fb_info_t {
-    uint8_t* addr;
+    argb_t* addr;
     uint32_t pitch;
     uint32_t width, height;
     uint8_t bpp;
@@ -16,7 +16,7 @@ extern fb_info_t fb_info;
 
 void fb_init(fb_info_t info);
 
-void fb_put_pixel(uint32_t x, uint32_t y, argb_t color);
+void fb_draw_pixel(uint32_t x, uint32_t y, argb_t color);
 argb_t fb_get_pixel(uint32_t x, uint32_t y);
 
 #endif // FB_H
