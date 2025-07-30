@@ -8,7 +8,7 @@ QEMU := qemu-system-i386
 SRC_DIR        := system
 OBJ_DIR        := build/obj
 ISO_DIR        := build/iso
-FS_IMG 		   := build/fs.img
+FS_IMG         := build/fs.img
 ISO_IMG        := build/MyraOS.iso
 KERNEL_ELF     := build/kernel.elf
 LINKER_SCRIPT  := linker.ld
@@ -30,24 +30,23 @@ ALL_OBJS := $(OBJ_FILES) $(ASM_OBJ_FILES)
 # ──────────  Configurable Flags  ──────────
 DEBUG ?= 0
 
+# Base CFLAGS - will be modified by DEBUG setting
 CFLAGS := -ffreestanding -m32 -std=gnu99 -Wall -Wextra -fno-omit-frame-pointer $(INCLUDE_FLAGS)
-ifeq ($(DEBUG), 1)
-CFLAGS += -g -O0
-else
-CFLAGS += -O2
-endif
 
 # ──────────  Default target  ──────────
 all: run
 
 # ──────────  Build rules  ──────────
-# C
+# C - with dynamic DEBUG handling
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo "[GCC] $<"
 	@mkdir -p $(dir $@)
-	@$(CC) -g -ffreestanding -m32 -std=gnu99 -O2 -Wall -Wextra \
-			-Wall -Wextra -fno-omit-frame-pointer \
-			$(INCLUDE_FLAGS) -c $< -o $@
+	@if [ "$(DEBUG)" = "1" ]; then \
+		EXTRA_FLAGS="-g -O0"; \
+	else \
+		EXTRA_FLAGS="-O2"; \
+	fi; \
+	$(CC) $(CFLAGS) $$EXTRA_FLAGS -c $< -o $@
 
 # Assembly
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.asm
@@ -84,8 +83,8 @@ run: $(ISO_IMG) $(FS_IMG)
 	        -drive file=$(FS_IMG),format=raw,if=ide,index=0 \
 	        -m 128M
 
-debug: DEBUG=1
-debug: $(ISO_IMG) $(FS_IMG)
+debug:
+	@DEBUG=1 $(MAKE) $(ISO_IMG) $(FS_IMG)
 	@echo "[QEMU] Running MyraOS (GDB mode)"
 	@$(QEMU) -s -S -cdrom $(ISO_IMG) \
 	        -drive file=$(FS_IMG),format=raw,if=ide,index=0 \
@@ -95,3 +94,27 @@ debug: $(ISO_IMG) $(FS_IMG)
 clean:
 	@echo "[CLEAN] Removing build artifacts"
 	@rm -rf build
+
+# ──────────  libc_user build  ──────────
+LIBC_USER_SRC := $(shell find $(SRC_DIR)/libc/src/libc_user -name '*.c')
+LIBC_USER_OBJ := $(patsubst $(SRC_DIR)/%, $(OBJ_DIR)/%, $(LIBC_USER_SRC:.c=.o))
+LIBC_USER_A   := $(SRC_DIR)/libc/src/libc_user/libc_user.a
+LIBC_USER_INC := -I$(SRC_DIR)/libc/include/libc_user
+
+$(LIBC_USER_OBJ): CFLAGS += $(LIBC_USER_INC)
+
+$(LIBC_USER_A): $(LIBC_USER_OBJ)
+	@echo "[AR] Creating libc_user.a"
+	@$(AR) rcs $@ $^
+
+$(OBJ_DIR)/libc/src/libc_user/%.o: $(SRC_DIR)/libc/src/libc_user/%.c
+	@echo "[GCC] $<"
+	@mkdir -p $(dir $@)
+	@if [ "$(DEBUG)" = "1" ]; then \
+		EXTRA_FLAGS="-g -O0"; \
+	else \
+		EXTRA_FLAGS="-O2"; \
+	fi; \
+	$(CC) $(CFLAGS) $$EXTRA_FLAGS -c $< -o $@
+
+libc: $(LIBC_USER_A)
