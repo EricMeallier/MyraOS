@@ -15,6 +15,6 @@ void pit_init(void);
 void pit_handler(registers_t* regs);
 
 // getter
-uint64_t pit_ticks(void);
+uint32_t pit_ticks(void);
 
 #endif // PIT_H

@@ -10,7 +10,7 @@
 
 #define RING_3 0x3
 
-static uint64_t tick_count = 0;
+static uint32_t tick_count = 0;
 
 void pit_init(void) {
     uint16_t divisor = PIT_BASE_HZ / PIT_HZ;
@@ -35,6 +35,6 @@ void pit_handler(registers_t* regs) {
     }
 }
 
-uint64_t pit_ticks(void) {
+uint32_t pit_ticks(void) {
     return tick_count;
 }
