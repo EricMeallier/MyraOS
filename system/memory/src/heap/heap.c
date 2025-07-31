@@ -15,7 +15,7 @@ heap_block_t* heap_end;
 void heap_init(uintptr_t start, size_t size) {
     for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
         uintptr_t virt = start + offset;
-        uintptr_t phys = pmm_alloc_page();
+        uintptr_t phys = (uintptr_t) pmm_alloc_page();
         vmm_map_page(virt, phys, PAGE_PRESENT | PAGE_WRITE);
     }
 

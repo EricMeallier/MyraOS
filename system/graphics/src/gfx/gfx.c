@@ -20,6 +20,15 @@ void gfx_draw_pixel(uint32_t x, uint32_t y, argb_t color) {
     double_buffer[offset] = color;
 }
 
+argb_t gfx_get_pixel(uint32_t x, uint32_t y) {
+    if (x >= fb_info.width || y >= fb_info.height) {
+        return 0;
+    }
+
+    uint32_t offset = y * fb_info.pixels_per_row + x;
+    return double_buffer[offset];
+}
+
 void gfx_draw_line(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, argb_t color) {
     int dx = x1 > x0 ? x1 - x0 : x0 - x1;
     int dy = y1 > y0 ? y1 - y0 : y0 - y1;

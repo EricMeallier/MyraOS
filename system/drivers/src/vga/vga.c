@@ -91,7 +91,9 @@ void vga_put_char(const char c) {
         cursor_pos -= VGA_WIDTH;
     }
 
-    if (check_for_escape_chars(c, cursor_pos)) return;
+    if (check_for_escape_chars(c, cursor_pos)) {
+        return;
+    }
 
     video_memory[cursor_pos] = char_with_color;
     vga_set_cursor(cursor_pos + 1);
