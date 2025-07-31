@@ -47,7 +47,8 @@ void parse_multiboot_info(uint32_t addr) {
                 .pitch = fb->framebuffer_pitch,
                 .width = fb->framebuffer_width,
                 .height = fb->framebuffer_height,
-                .bpp = fb->framebuffer_bpp
+                .bpp = fb->framebuffer_bpp,
+                .pixels_per_row = fb->framebuffer_pitch / sizeof(argb_t),
             };
             fb_init(fb_info);
             gfx_init();

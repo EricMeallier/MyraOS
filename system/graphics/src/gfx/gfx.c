@@ -16,7 +16,7 @@ void gfx_draw_pixel(uint32_t x, uint32_t y, argb_t color) {
         return;
     }
 
-    uint32_t offset = y * fb_info.width + x;
+    uint32_t offset = y * fb_info.pixels_per_row + x;
     double_buffer[offset] = color;
 }
 
@@ -115,17 +115,13 @@ void gfx_draw_polygon(const uint32_t* xs, const uint32_t* ys, size_t count, argb
 
 void gfx_clear(argb_t color) {
     for (uint32_t y = 0; y < fb_info.height; y++) {
+        uint32_t* row = &double_buffer[y * fb_info.pixels_per_row];
         for (uint32_t x = 0; x < fb_info.width; x++) {
-            gfx_draw_pixel(x, y, color);
+            row[x] = color;
         }
     }
 }
 
 void gfx_flush(void) {
-    for (uint32_t y = 0; y < fb_info.height; y++) {
-        for (uint32_t x = 0; x < fb_info.width; x++) {
-            uint32_t offset = y * fb_info.width + x;
-            fb_draw_pixel(x, y, double_buffer[offset]);
-        }
-    }
+    fb_flush(double_buffer);
 }
