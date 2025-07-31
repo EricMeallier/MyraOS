@@ -29,6 +29,24 @@ argb_t gfx_get_pixel(uint32_t x, uint32_t y) {
     return double_buffer[offset];
 }
 
+void gfx_blend_pixel(int x, int y, argb_t color, uint8_t alpha) {
+    argb_t dst = gfx_get_pixel(x, y);
+
+    uint8_t src_r = (color >> 16) & 0xFF;
+    uint8_t src_g = (color >> 8) & 0xFF;
+    uint8_t src_b = (color) & 0xFF;
+
+    uint8_t dst_r = (dst >> 16) & 0xFF;
+    uint8_t dst_g = (dst >> 8) & 0xFF;
+    uint8_t dst_b = (dst) & 0xFF;
+
+    uint8_t out_r = (src_r * alpha + dst_r * (255 - alpha)) / 255;
+    uint8_t out_g = (src_g * alpha + dst_g * (255 - alpha)) / 255;
+    uint8_t out_b = (src_b * alpha + dst_b * (255 - alpha)) / 255;
+
+    gfx_draw_pixel(x, y, 0xFF000000 | (out_r << 16) | (out_g << 8) | out_b);
+}
+
 void gfx_draw_line(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, argb_t color) {
     int dx = x1 > x0 ? x1 - x0 : x0 - x1;
     int dy = y1 > y0 ? y1 - y0 : y0 - y1;
@@ -99,10 +117,22 @@ void gfx_draw_circle(uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
 }
 
 void gfx_fill_circle(uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
-    for (int y = -radius; y <= (int)radius; y++) {
-        for (int x = -radius; x <= (int)radius; x++) {
-            if (x * x + y * y <= (int)(radius * radius)) {
-                gfx_draw_pixel(cx + x, cy + y, color);
+    const int r = radius;
+    const int r2 = r * r;
+    const int edge = 2;
+
+    for (int y = -r - 1; y <= r + 1; y++) {
+        for (int x = -r - 1; x <= r + 1; x++) {
+            int dx = x;
+            int dy = y;
+            int dist2 = dx * dx + dy * dy;
+
+            if (dist2 <= r2 - edge) {
+                gfx_draw_pixel(cx + dx, cy + dy, color);
+            } else if (dist2 <= r2 + edge) {
+                int diff = r2 + edge - dist2;
+                uint8_t alpha = (uint8_t)((diff * 255) / (2 * edge));
+                gfx_blend_pixel(cx + dx, cy + dy, color, alpha);
             }
         }
     }
