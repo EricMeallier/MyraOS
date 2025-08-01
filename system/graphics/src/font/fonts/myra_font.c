@@ -1,13 +1,6 @@
-#ifndef MYRA_FONT_H
-#define MYRA_FONT_H
+#include "font/fonts/myra_font.h"
 
-#include <stdint.h>
-
-#include "font/font.h"
-
-#define MYRA_FONT_WIDTH 8
-#define MYRA_FONT_HEIGHT 16
-
+// This font was made by Oshri Fogel, for MyraOS.
 static const uint8_t myra_bitmaps[] = {
     // ' ' (0x20)
     0b00000000,
@@ -982,7 +975,7 @@ static const uint8_t myra_bitmaps[] = {
     0b00000000,
     0b00000000,
     0b00000000,
-    0b00000000,
+    0b01000001,
     0b01000001,
     0b01000001,
     0b00100010,
@@ -1240,9 +1233,9 @@ static const uint8_t myra_bitmaps[] = {
     0b01000000,
     0b01000000,
     0b01000000,
-    0b01000000,
-    0b01000000,
     0b01111100,
+    0b01000010,
+    0b01000010,
     0b01000010,
     0b01000010,
     0b01000010,
@@ -1528,7 +1521,7 @@ static const uint8_t myra_bitmaps[] = {
     0b00000000,
     0b00000000,
     0b00000000,
-    0b00000000,
+    0b01000010,
     0b01000010,
     0b01000010,
     0b01000010,
@@ -1626,10 +1619,8 @@ static const uint8_t myra_bitmaps[] = {
     0b00000000,
 };
 
-static font_t myra_font = {
+font_t myra_font = {
     .width = MYRA_FONT_WIDTH,
     .height = MYRA_FONT_HEIGHT,
     .data = myra_bitmaps
 };
-
-#endif // MYRA_FONT_H
