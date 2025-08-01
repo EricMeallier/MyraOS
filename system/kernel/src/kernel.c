@@ -2,9 +2,11 @@
 
 #include "block_device/pata.h"
 #include "ext2/ext2.h"
+#include "font/font.h"
 #include "gdt/gdt.h"
 #include "gfx/gfx.h"
 #include "heap/heap.h"
+#include "image/image_loader.h"
 #include "interrupt/idt/idt.h"
 #include "interrupt/irq/irq.h"
 #include "interrupt/isr/isr.h"
@@ -80,9 +82,22 @@ void kernel_main(void) {
             dt.day, dt.month, dt.year,
             dt.weekday
         );
-
+    
     gfx_clear(0xFF222222);
     gfx_flush();
+
+    image_t* boot_image = image_parse("/myra/boot/boot_image.bmp");
+    if (boot_image != NULL) {
+        for (uint32_t y = 0; y < boot_image->height; y++) {
+            for (uint32_t x = 0; x < boot_image->width; x++) {
+                gfx_draw_pixel(x + fb_info.width / 2 - boot_image->width / 2, y + fb_info.height / 2 - boot_image->height / 2, boot_image->pixels[y * boot_image->width + x]);
+            }
+        }
+    } else {
+        font_write("\x1b[31mFailed to get boot image\x1b[0m");
+    }
+
+    gfx_flush_dirty();
 
     mouse_set(true);
 
