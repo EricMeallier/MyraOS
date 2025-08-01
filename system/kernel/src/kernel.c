@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#include "block_device/pata.h"
 #include "ext2/ext2.h"
 #include "gdt/gdt.h"
 #include "heap/heap.h"
@@ -8,7 +9,7 @@
 #include "interrupt/isr/isr.h"
 #include "interrupt/syscall/syscall.h"
 #include "keyboard/keyboard.h"
-#include "block_device/pata.h"
+#include "mouse/mouse.h"
 #include "pit/pit.h"
 #include "pmm/pmm.h"
 #include "print/print.h"
@@ -39,6 +40,8 @@ void kernel_main(void) {
     keyboard_driver_install();
     tty_init();
 
+    mouse_init();
+
     pata_init();
 
     block_device_t* block_device = block_get_device("hd0");
@@ -66,6 +69,8 @@ void kernel_main(void) {
     exec_info_t shell_exec_info;
     exec_parse_info_elf(&shell_load_info, &shell_exec_info);
 
+    parse_multiboot_info(multiboot_info_addr);
+
     kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
 
     datetime_t dt = rtc_get_system_datetime();
@@ -75,7 +80,10 @@ void kernel_main(void) {
             dt.weekday
         );
 
-    parse_multiboot_info(multiboot_info_addr);
+    gfx_clear(0xFF222222);
+    gfx_flush();
+
+    mouse_set(true);
 
     schedule_init(&shell_exec_info);
 
