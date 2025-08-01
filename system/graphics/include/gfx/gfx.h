@@ -19,6 +19,7 @@ void gfx_draw_polygon(const uint32_t* xs, const uint32_t* ys, size_t count, argb
 
 void gfx_clear(argb_t color);
 
+void gfx_flush_dirty(void);
 void gfx_flush(void);
 
 #endif // GFX_H

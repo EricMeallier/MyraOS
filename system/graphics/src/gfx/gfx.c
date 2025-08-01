@@ -5,6 +5,18 @@
 
 static argb_t* double_buffer;
 
+typedef struct {
+    int x_min;
+    int y_min;
+    int x_max;
+    int y_max;
+    bool dirty;
+} gfx_dirty_rect_t;
+
+static gfx_dirty_rect_t dirty_rect = {0, 0, 0, 0, false};
+
+static inline void gfx_mark_dirty(int x, int y);
+
 void gfx_init(void) {
     uint32_t buffer_size = fb_info.pitch * fb_info.height;
     double_buffer = kmalloc(buffer_size);
@@ -18,6 +30,8 @@ void gfx_draw_pixel(uint32_t x, uint32_t y, argb_t color) {
 
     uint32_t offset = y * fb_info.pixels_per_row + x;
     double_buffer[offset] = color;
+
+    gfx_mark_dirty(x, y);
 }
 
 argb_t gfx_get_pixel(uint32_t x, uint32_t y) {
@@ -161,6 +175,44 @@ void gfx_clear(argb_t color) {
     }
 }
 
+void gfx_flush_dirty(void) {
+    if (!dirty_rect.dirty) {
+        return;
+    }
+
+    int w = dirty_rect.x_max - dirty_rect.x_min + 1;
+    int h = dirty_rect.y_max - dirty_rect.y_min + 1;
+
+    for (int row = 0; row < h; row++) {
+        uint32_t* src = &double_buffer[(dirty_rect.y_min + row) * fb_info.pixels_per_row + dirty_rect.x_min];
+        uint32_t* dst = &((uint32_t*)fb_info.addr)[(dirty_rect.y_min + row) * fb_info.pixels_per_row + dirty_rect.x_min];
+        kmemcpy(dst, src, w * sizeof(argb_t));
+    }
+
+    dirty_rect.dirty = false;
+}
+
 void gfx_flush(void) {
     fb_flush(double_buffer);
+}
+
+static inline void gfx_mark_dirty(int x, int y) {
+    if (!dirty_rect.dirty) {
+        dirty_rect.x_min = dirty_rect.x_max = x;
+        dirty_rect.y_min = dirty_rect.y_max = y;
+        dirty_rect.dirty = true;
+    } else {
+        if (x < dirty_rect.x_min) {
+            dirty_rect.x_min = x;
+        }
+        if (x > dirty_rect.x_max) {
+            dirty_rect.x_max = x;
+        }
+        if (y < dirty_rect.y_min) {
+            dirty_rect.y_min = y;
+        }
+        if (y > dirty_rect.y_max) {
+            dirty_rect.y_max = y;
+        }
+    }
 }
