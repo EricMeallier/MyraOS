@@ -4,8 +4,7 @@
 #include "keyboard/keyboard.h"
 
 typedef struct {
-    void (*draw)(void);
-    void (*update)(void);
+    void (*init)(void);
     void (*handle_input)(key_event_t key);
 } screen_t;
 
