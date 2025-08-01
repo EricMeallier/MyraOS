@@ -9,8 +9,17 @@
 #define FONT_FIRST_READABLE_ASCII 32
 #define FONT_ASCII_COUNT 95
 
-static bool font_handle_escape_char(char c);
+static enum {
+    FONT_ANSI_NONE,
+    FONT_ANSI_ESC,
+    FONT_ANSI_CSI
+} font_ansi_state = FONT_ANSI_NONE;
 
+static bool font_handle_escape_char(char c);
+static void font_apply_ansi_color(const char* code);
+
+static char font_ansi_buf[16];
+static size_t font_ansi_len = 0;
 static cursor_t current_cursor;
 static box_limit_t current_box_limit;
 static argb_t font_color;
@@ -64,6 +73,45 @@ void font_scroll(uint32_t lines) {
 }
 
 void font_write_char(char c) {
+    // Handle ANSI escape sequences
+    if (font_ansi_state != FONT_ANSI_NONE) {
+        if (font_ansi_state == FONT_ANSI_ESC && c == '[') {
+            font_ansi_state = FONT_ANSI_CSI;
+            font_ansi_len = 0;
+            return;
+        }
+
+        if (font_ansi_state == FONT_ANSI_CSI) {
+            if ((c >= '0' && c <= '9') || c == ';') {
+                if (font_ansi_len < sizeof(font_ansi_buf) - 1) {
+                    font_ansi_buf[font_ansi_len++] = c;
+                }
+                return;
+            } else {
+                font_ansi_buf[font_ansi_len] = 0;
+                if (c == 'm') {
+                    font_apply_ansi_color(font_ansi_buf);
+                } else if (c == 'J') {
+                    font_clear(background_color);
+                }
+                font_ansi_state = FONT_ANSI_NONE;
+                return;
+            }
+        }
+
+        font_ansi_state = FONT_ANSI_NONE;
+        return;
+    }
+
+    if (c == '\x1b') {
+        font_ansi_state = FONT_ANSI_ESC;
+        return;
+    }
+
+    if (font_handle_escape_char(c)) {
+        return;
+    }
+
     uint32_t char_width = current_font->width;
     uint32_t char_height = current_font->height;
     
@@ -110,10 +158,6 @@ void font_write_char_at(char c, uint32_t x, uint32_t y) {
 void font_write(const char* str) {
     while (*str) {
         char c = *str++;
-        if (font_handle_escape_char(c)) {
-            continue;
-        }
-
         font_write_char(c);
     }
 }
@@ -239,5 +283,21 @@ static bool font_handle_escape_char(char c) {
         }
         default:
             return false;
+    }
+}
+
+static void font_apply_ansi_color(const char* code) {
+    int val = katoi(code);
+
+    switch (val) {
+        case 0:  font_color = 0xFFFFFFFF; break; // Reset to white
+        case 30: font_color = 0xFF000000; break; // Black
+        case 31: font_color = 0xFFFF0000; break; // Red
+        case 32: font_color = 0xFF00FF00; break; // Green
+        case 33: font_color = 0xFFFFFF00; break; // Yellow
+        case 34: font_color = 0xFF0000FF; break; // Blue
+        case 35: font_color = 0xFFFF00FF; break; // Magenta
+        case 36: font_color = 0xFF00FFFF; break; // Cyan
+        case 37: font_color = 0xFFFFFFFF; break; // White
     }
 }

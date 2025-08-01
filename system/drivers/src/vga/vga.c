@@ -82,7 +82,6 @@ void vga_put_char(const char c) {
         return;
     }
 
-    // Existing logic
     cursor_pos = vga_get_cursor();
     const uint16_t char_with_color = c | color << 8;
 
