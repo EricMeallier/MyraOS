@@ -216,10 +216,13 @@ static inline void gfx_mark_dirty(int x, int y) {
     int x1 = x + padding;
     int y1 = y + padding;
 
+    int w = (int) fb_info.width;
+    int h = (int) fb_info.height;
+
     x0 = x0 < 0 ? 0 : x0;
     y0 = y0 < 0 ? 0 : y0;
-    x1 = x1 >= fb_info.width ? fb_info.width - 1 : x1;
-    y1 = y1 >= fb_info.height ? fb_info.height - 1 : y1;
+    x1 = x1 >= w ? w - 1 : x1;
+    y1 = y1 >= h ? h - 1 : y1;
 
     // Try to merge with existing rect
     for (int i = 0; i < MAX_DIRTY_RECTS; i++) {

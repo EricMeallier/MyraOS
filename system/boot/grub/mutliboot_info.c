@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "vmm/vmm.h"
 #include "fb/fb.h"
+#include "font/font.h"
+#include "font/myra_font.h"
 #include "gfx/gfx.h"
+#include "vmm/vmm.h"
 
 #define MB_TAG_TYPE_FRAMEBUFFER 8
 
@@ -50,8 +52,10 @@ void parse_multiboot_info(uint32_t addr) {
                 .bpp = fb->framebuffer_bpp,
                 .pixels_per_row = fb->framebuffer_pitch / sizeof(argb_t),
             };
+
             fb_init(fb_info);
             gfx_init();
+            font_init_default(&myra_font);
         }
 
         addr += (size + 7) & ~7; // 8-byte align

@@ -9,6 +9,10 @@
 #define FONT_FIRST_READABLE_ASCII 32
 #define FONT_ASCII_COUNT 95
 
+#define FONT_DEFAULT_BACKGROUND 0xFF222222
+#define FONT_DEFAULT_COLOR 0xFFFFFFFF
+#define FONT_DEFAULT_LOCATION 50
+
 static enum {
     FONT_ANSI_NONE,
     FONT_ANSI_ESC,
@@ -25,6 +29,19 @@ static box_limit_t current_box_limit;
 static argb_t font_color;
 static argb_t background_color;
 static font_t* current_font;
+
+void font_init_default(font_t* default_font) {
+    box_limit_t box_limit;
+    box_limit.x = FONT_DEFAULT_LOCATION;
+    box_limit.y = FONT_DEFAULT_LOCATION;
+    box_limit.height = fb_info.height;
+    box_limit.width = fb_info.width;
+    font_set_box_limit(&box_limit);
+    font_set_font(default_font);
+    font_set_background_color(FONT_DEFAULT_BACKGROUND);
+    font_set_color(FONT_DEFAULT_COLOR);
+    font_set_cursor((cursor_t) {FONT_DEFAULT_LOCATION, FONT_DEFAULT_LOCATION});
+}
 
 void font_set_font(font_t* new_font) {
     current_font = new_font;

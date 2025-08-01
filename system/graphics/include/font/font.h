@@ -22,6 +22,8 @@ typedef struct box_limit {
     uint32_t width, height;
 } box_limit_t;
 
+void font_init_default(font_t* default_font);
+
 void font_set_font(font_t* new_font);
 void font_set_box_limit(box_limit_t* box_limit);
 
