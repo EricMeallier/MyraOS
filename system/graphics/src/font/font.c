@@ -68,6 +68,10 @@ void font_set_color(argb_t color) {
     font_color = color;
 }
 
+argb_t font_get_color(void) {
+    return font_color;
+}
+
 void font_set_background_color(argb_t color) {
     background_color = color;
 }

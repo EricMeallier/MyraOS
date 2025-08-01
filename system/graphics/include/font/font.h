@@ -31,6 +31,8 @@ void font_set_cursor(cursor_t c);
 cursor_t font_get_cursor(void);
 
 void font_set_color(argb_t color);
+argb_t font_get_color(void);
+
 void font_set_background_color(argb_t color);
 
 void font_scroll(uint32_t lines);

@@ -3,7 +3,7 @@
 
 #include "fb/fb.h"
 #include "font/font.h"
-#include "font/myra_font.h"
+#include "font/fonts/myra_font.h"
 #include "gfx/gfx.h"
 #include "vmm/vmm.h"
 
