@@ -3,6 +3,7 @@
 #include "block_device/pata.h"
 #include "ext2/ext2.h"
 #include "gdt/gdt.h"
+#include "gfx/gfx.h"
 #include "heap/heap.h"
 #include "interrupt/idt/idt.h"
 #include "interrupt/irq/irq.h"

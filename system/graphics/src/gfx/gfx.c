@@ -3,24 +3,27 @@
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 
-static argb_t* double_buffer;
+#define MAX_DIRTY_RECTS 32
 
 typedef struct {
-    int x_min;
-    int y_min;
-    int x_max;
-    int y_max;
+    int x_min, y_min, x_max, y_max;
     bool dirty;
 } gfx_dirty_rect_t;
 
-static gfx_dirty_rect_t dirty_rect = {0, 0, 0, 0, false};
+static gfx_dirty_rect_t dirty_rects[MAX_DIRTY_RECTS];
 
 static inline void gfx_mark_dirty(int x, int y);
+
+static argb_t* double_buffer;
 
 void gfx_init(void) {
     uint32_t buffer_size = fb_info.pitch * fb_info.height;
     double_buffer = kmalloc(buffer_size);
     kmemset(double_buffer, 0, buffer_size);
+
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        dirty_rects[i].dirty = false;
+    }
 }
 
 void gfx_draw_pixel(uint32_t x, uint32_t y, argb_t color) {
@@ -167,29 +170,38 @@ void gfx_draw_polygon(const uint32_t* xs, const uint32_t* ys, size_t count, argb
 }
 
 void gfx_clear(argb_t color) {
-    for (uint32_t y = 0; y < fb_info.height; y++) {
-        uint32_t* row = &double_buffer[y * fb_info.pixels_per_row];
-        for (uint32_t x = 0; x < fb_info.width; x++) {
-            row[x] = color;
-        }
+    uint32_t total = fb_info.pixels_per_row * fb_info.height;
+    for (uint32_t i = 0; i < total; i++) {
+        double_buffer[i] = color;
     }
+
+    dirty_rects[0] = (gfx_dirty_rect_t){
+        .x_min = 0,
+        .y_min = 0,
+        .x_max = fb_info.width - 1,
+        .y_max = fb_info.height - 1,
+        .dirty = true,
+    };
 }
 
 void gfx_flush_dirty(void) {
-    if (!dirty_rect.dirty) {
-        return;
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        if (!dirty_rects[i].dirty) {
+            continue;
+        }
+
+        gfx_dirty_rect_t* r = &dirty_rects[i];
+        int w = r->x_max - r->x_min + 1;
+        int h = r->y_max - r->y_min + 1;
+
+        for (int row = 0; row < h; row++) {
+            uint32_t* src = &double_buffer[(r->y_min + row) * fb_info.pixels_per_row + r->x_min];
+            uint32_t* dst = &((uint32_t*)fb_info.addr)[(r->y_min + row) * fb_info.pixels_per_row + r->x_min];
+            kmemcpy(dst, src, w * sizeof(argb_t));
+        }
+
+        r->dirty = false;
     }
-
-    int w = dirty_rect.x_max - dirty_rect.x_min + 1;
-    int h = dirty_rect.y_max - dirty_rect.y_min + 1;
-
-    for (int row = 0; row < h; row++) {
-        uint32_t* src = &double_buffer[(dirty_rect.y_min + row) * fb_info.pixels_per_row + dirty_rect.x_min];
-        uint32_t* dst = &((uint32_t*)fb_info.addr)[(dirty_rect.y_min + row) * fb_info.pixels_per_row + dirty_rect.x_min];
-        kmemcpy(dst, src, w * sizeof(argb_t));
-    }
-
-    dirty_rect.dirty = false;
 }
 
 void gfx_flush(void) {
@@ -197,22 +209,38 @@ void gfx_flush(void) {
 }
 
 static inline void gfx_mark_dirty(int x, int y) {
-    if (!dirty_rect.dirty) {
-        dirty_rect.x_min = dirty_rect.x_max = x;
-        dirty_rect.y_min = dirty_rect.y_max = y;
-        dirty_rect.dirty = true;
-    } else {
-        if (x < dirty_rect.x_min) {
-            dirty_rect.x_min = x;
+    const int padding = 1;
+
+    int x0 = x - padding;
+    int y0 = y - padding;
+    int x1 = x + padding;
+    int y1 = y + padding;
+
+    x0 = x0 < 0 ? 0 : x0;
+    y0 = y0 < 0 ? 0 : y0;
+    x1 = x1 >= fb_info.width ? fb_info.width - 1 : x1;
+    y1 = y1 >= fb_info.height ? fb_info.height - 1 : y1;
+
+    // Try to merge with existing rect
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        if (!dirty_rects[i].dirty) continue;
+
+        gfx_dirty_rect_t* r = &dirty_rects[i];
+
+        if (!(x1 < r->x_min || x0 > r->x_max || y1 < r->y_min || y0 > r->y_max)) {
+            r->x_min = r->x_min < x0 ? r->x_min : x0;
+            r->y_min = r->y_min < y0 ? r->y_min : y0;
+            r->x_max = r->x_max > x1 ? r->x_max : x1;
+            r->y_max = r->y_max > y1 ? r->y_max : y1;
+            return;
         }
-        if (x > dirty_rect.x_max) {
-            dirty_rect.x_max = x;
-        }
-        if (y < dirty_rect.y_min) {
-            dirty_rect.y_min = y;
-        }
-        if (y > dirty_rect.y_max) {
-            dirty_rect.y_max = y;
+    }
+
+    // Add new rect
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        if (!dirty_rects[i].dirty) {
+            dirty_rects[i] = (gfx_dirty_rect_t){ x0, y0, x1, y1, true };
+            return;
         }
     }
 }
