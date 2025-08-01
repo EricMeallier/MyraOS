@@ -10,10 +10,6 @@
 
 #include "font/font.h"
 
-#define CURSOR_SIZE 3
-#define CURSOR_SAFE_MARGIN 1
-#define CURSOR_AREA_SIZE (CURSOR_SIZE + CURSOR_SAFE_MARGIN)
-
 static int8_t mouse_cycle = 0;
 static int8_t mouse_bytes[3];
 
