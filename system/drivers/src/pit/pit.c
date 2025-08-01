@@ -1,5 +1,6 @@
 #include "pit/pit.h"
 
+#include "frame/frame.h"
 #include "io/port_io.h"
 #include "interrupt/irq/irq.h"
 #include "input/input.h"
@@ -28,6 +29,8 @@ void pit_handler(registers_t* regs) {
     outb(0x20, 0x20);
 
     input_process();
+
+    frame_render();
 
     if ((regs->cs & RING_3) == RING_3) {
         schedule_save_context(regs);
