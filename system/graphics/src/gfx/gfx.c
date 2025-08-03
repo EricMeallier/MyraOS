@@ -13,6 +13,7 @@ typedef struct {
 static gfx_dirty_rect_t dirty_rects[MAX_DIRTY_RECTS];
 
 static inline void gfx_mark_dirty(int x, int y);
+static void blend_pixel(int x, int y, argb_t color, uint8_t alpha);
 
 static argb_t* double_buffer;
 
@@ -44,24 +45,6 @@ argb_t gfx_get_pixel(uint32_t x, uint32_t y) {
 
     uint32_t offset = y * fb_info.pixels_per_row + x;
     return double_buffer[offset];
-}
-
-void gfx_blend_pixel(int x, int y, argb_t color, uint8_t alpha) {
-    argb_t dst = gfx_get_pixel(x, y);
-
-    uint8_t src_r = (color >> 16) & 0xFF;
-    uint8_t src_g = (color >> 8) & 0xFF;
-    uint8_t src_b = (color) & 0xFF;
-
-    uint8_t dst_r = (dst >> 16) & 0xFF;
-    uint8_t dst_g = (dst >> 8) & 0xFF;
-    uint8_t dst_b = (dst) & 0xFF;
-
-    uint8_t out_r = (src_r * alpha + dst_r * (255 - alpha)) / 255;
-    uint8_t out_g = (src_g * alpha + dst_g * (255 - alpha)) / 255;
-    uint8_t out_b = (src_b * alpha + dst_b * (255 - alpha)) / 255;
-
-    gfx_draw_pixel(x, y, 0xFF000000 | (out_r << 16) | (out_g << 8) | out_b);
 }
 
 void gfx_draw_line(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, argb_t color) {
@@ -149,7 +132,7 @@ void gfx_fill_circle(uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
             } else if (dist2 <= r2 + edge) {
                 int diff = r2 + edge - dist2;
                 uint8_t alpha = (uint8_t)((diff * 255) / (2 * edge));
-                gfx_blend_pixel(cx + dx, cy + dy, color, alpha);
+                blend_pixel(cx + dx, cy + dy, color, alpha);
             }
         }
     }
@@ -226,7 +209,9 @@ static inline void gfx_mark_dirty(int x, int y) {
 
     // Try to merge with existing rect
     for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
-        if (!dirty_rects[i].dirty) continue;
+        if (!dirty_rects[i].dirty) {
+            continue;
+        }
 
         gfx_dirty_rect_t* r = &dirty_rects[i];
 
@@ -246,4 +231,22 @@ static inline void gfx_mark_dirty(int x, int y) {
             return;
         }
     }
+}
+
+static void blend_pixel(int x, int y, argb_t color, uint8_t alpha) {
+    argb_t dst = gfx_get_pixel(x, y);
+
+    uint8_t src_r = (color >> 16) & 0xFF;
+    uint8_t src_g = (color >> 8) & 0xFF;
+    uint8_t src_b = (color) & 0xFF;
+
+    uint8_t dst_r = (dst >> 16) & 0xFF;
+    uint8_t dst_g = (dst >> 8) & 0xFF;
+    uint8_t dst_b = (dst) & 0xFF;
+
+    uint8_t out_r = (src_r * alpha + dst_r * (255 - alpha)) / 255;
+    uint8_t out_g = (src_g * alpha + dst_g * (255 - alpha)) / 255;
+    uint8_t out_b = (src_b * alpha + dst_b * (255 - alpha)) / 255;
+
+    gfx_draw_pixel(x, y, 0xFF000000 | (out_r << 16) | (out_g << 8) | out_b);
 }
