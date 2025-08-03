@@ -47,30 +47,23 @@ void* kmalloc(size_t size) {
             return NULL;
         }
         
-        heap_end = (heap_block_t*)((uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t));
-        vmm_map_page((uintptr_t) heap_end, (uint32_t) curr_block_phys, PAGE_PRESENT | PAGE_WRITE);
+        heap_block_t* new_block = (heap_block_t*)((uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t));
+        vmm_map_page((uintptr_t)new_block, (uint32_t)curr_block_phys, PAGE_PRESENT | PAGE_WRITE);
 
-        curr_block = heap_end;
-    
-        // init the new block
-        curr_block->size = PAGE_SIZE - sizeof(heap_block_t);
-        curr_block->free = false;
-        curr_block->next = NULL;
+        new_block->size = PAGE_SIZE - sizeof(heap_block_t);
+        new_block->free = true;
+        new_block->next = NULL;
 
-        // skip to the splitting logic
-        heap_end->next = curr_block;
-        heap_end = curr_block;
-    } else if (curr_block->size == size) {
-        curr_block->free = false;
-
-        return GET_METADATA_ADDR(curr_block);
+        heap_end->next = new_block;
+        heap_end = new_block;
+        curr_block = new_block;
     }
 
-    // split the block
     if (curr_block->size > size + sizeof(heap_block_t) + 8) {
-        split_block(curr_block, size);
+        curr_block = split_block(curr_block, size);
     }
 
+    curr_block->free = false;
     return GET_METADATA_ADDR(curr_block);
 }
 
