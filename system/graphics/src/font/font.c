@@ -43,8 +43,28 @@ void font_init_default(font_t* default_font) {
     font_set_cursor((cursor_t) {FONT_DEFAULT_LOCATION, FONT_DEFAULT_LOCATION});
 }
 
+font_state_t font_save_state(void) {
+    return (font_state_t){
+        .cursor = current_cursor,
+        .font = current_font,
+        .color = font_color,
+        .box_limit = current_box_limit
+    };
+}
+
+void font_restore_state(font_state_t state) {
+    current_cursor = state.cursor;
+    current_font = state.font;
+    font_color = state.color;
+    current_box_limit = state.box_limit;
+}
+
 void font_set_font(font_t* new_font) {
     current_font = new_font;
+}
+
+font_t* font_get_font(void) {
+    return current_font;
 }
 
 void font_set_box_limit(box_limit_t* box_limit) {
@@ -54,6 +74,10 @@ void font_set_box_limit(box_limit_t* box_limit) {
         .x = box_limit->x,
         .y = box_limit->y,
     };
+}
+
+box_limit_t font_get_box_limit(void) {
+    return current_box_limit;
 }
 
 void font_set_cursor(cursor_t c) {
@@ -74,6 +98,10 @@ argb_t font_get_color(void) {
 
 void font_set_background_color(argb_t color) {
     background_color = color;
+}
+
+argb_t font_get_background_color(void) {
+    return background_color;
 }
 
 void font_scroll(uint32_t lines) {
@@ -181,6 +209,13 @@ void font_write(const char* str) {
         char c = *str++;
         font_write_char(c);
     }
+}
+
+void font_writef(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    font_write_format(fmt, args);
+    va_end(args);
 }
 
 void font_write_format(const char* fmt, va_list ap) {
