@@ -3,18 +3,24 @@
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 
-void label_draw(widget_t* w) {
+typedef struct label_data_t {
+    const char* text;
+    font_t* font;
+    argb_t color;
+} label_data_t;
+
+static void label_draw(widget_t* w) {
+    font_state_t font_state = font_save_state();
+
     label_data_t* label_data = (label_data_t*) w->data;
 
-    argb_t current_color = font_get_color();
     font_set_color(label_data->color);
-
     font_set_cursor((cursor_t) {w->x, w->y});
     font_set_font(label_data->font);
     
     font_write(label_data->text);
 
-    font_set_color(current_color);
+    font_restore_state(font_state);
 }
 
 widget_t* label_create(int x, int y, const char* text, font_t* font, argb_t color) {
