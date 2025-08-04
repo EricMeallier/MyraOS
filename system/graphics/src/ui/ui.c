@@ -6,6 +6,17 @@ static widget_t* ui_widgets[MAX_WIDGETS];
 static size_t ui_widget_count = 0;
 
 void ui_clear(void) {
+    for (size_t i = 0; i < ui_widget_count; i++) {
+        widget_t* w = ui_widgets[i];
+
+        if (w->data) {
+            kfree(w->data);
+        }
+
+        kfree(w);
+        ui_widgets[i] = NULL;
+    }
+
     ui_widget_count = 0;
 }
 
