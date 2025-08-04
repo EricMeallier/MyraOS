@@ -3,6 +3,7 @@
 #include "block_device/pata.h"
 #include "ext2/ext2.h"
 #include "font/font.h"
+#include "frame/frame.h"
 #include "gdt/gdt.h"
 #include "gfx/gfx.h"
 #include "heap/heap.h"
@@ -18,6 +19,7 @@
 #include "print/print.h"
 #include "rtc/rtc.h"
 #include "schedule/schedule.h"
+#include "screen/screen.h"
 #include "tty/tty.h"
 #include "vmm/vmm.h"
 
@@ -73,31 +75,7 @@ void kernel_main(void) {
     exec_parse_info_elf(&shell_load_info, &shell_exec_info);
 
     parse_multiboot_info(multiboot_info_addr);
-
-    kprint("Welcome to \x1b[32mMyraOS\x1b[0m\n");
-
-    datetime_t dt = rtc_get_system_datetime();
-    kprintf("Current Time: %02d:%02d:%02d, Date: %02d/%02d/%d (Weekday: %d)\n\n",
-            dt.hour, dt.minute, dt.second,
-            dt.day, dt.month, dt.year,
-            dt.weekday
-        );
-    
-    gfx_clear(0xFF222222);
-    gfx_flush();
-
-    image_t* boot_image = image_parse("/myra/boot/boot_image.bmp");
-    if (boot_image != NULL) {
-        for (uint32_t y = 0; y < boot_image->height; y++) {
-            for (uint32_t x = 0; x < boot_image->width; x++) {
-                gfx_draw_pixel(x + fb_info.width / 2 - boot_image->width / 2, y + fb_info.height / 2 - boot_image->height / 2, boot_image->pixels[y * boot_image->width + x]);
-            }
-        }
-    } else {
-        font_write("\x1b[31mFailed to get boot image\x1b[0m");
-    }
-
-    gfx_flush_dirty();
+    frame_set_screen(&screen_desktop);
 
     mouse_set(true);
 
