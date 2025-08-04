@@ -1,8 +1,9 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "fb/fb.h"
 
@@ -26,7 +27,9 @@ typedef struct font_state_t {
     cursor_t cursor;
     font_t* font;
     argb_t color;
+    argb_t background_color;
     box_limit_t box_limit;
+    bool scrolling_enabled;
 } font_state_t;
 
 void font_init_default(font_t* default_font);
@@ -49,6 +52,7 @@ argb_t font_get_color(void);
 void font_set_background_color(argb_t color) ;
 argb_t font_get_background_color(void);
 
+void font_set_scrolling(bool enabled);
 void font_scroll(uint32_t lines);
 
 void font_write_char(char c);

@@ -24,11 +24,7 @@ static void font_apply_ansi_color(const char* code);
 
 static char font_ansi_buf[16];
 static size_t font_ansi_len = 0;
-static cursor_t current_cursor;
-static box_limit_t current_box_limit;
-static argb_t font_color;
-static argb_t background_color;
-static font_t* current_font;
+static font_state_t font_state;
 
 void font_init_default(font_t* default_font) {
     box_limit_t box_limit;
@@ -41,34 +37,27 @@ void font_init_default(font_t* default_font) {
     font_set_background_color(FONT_DEFAULT_BACKGROUND);
     font_set_color(FONT_DEFAULT_COLOR);
     font_set_cursor((cursor_t) {FONT_DEFAULT_LOCATION, FONT_DEFAULT_LOCATION});
+    font_set_scrolling(false);
 }
 
 font_state_t font_save_state(void) {
-    return (font_state_t){
-        .cursor = current_cursor,
-        .font = current_font,
-        .color = font_color,
-        .box_limit = current_box_limit
-    };
+    return font_state;
 }
 
 void font_restore_state(font_state_t state) {
-    current_cursor = state.cursor;
-    current_font = state.font;
-    font_color = state.color;
-    current_box_limit = state.box_limit;
+    font_state = state;
 }
 
 void font_set_font(font_t* new_font) {
-    current_font = new_font;
+    font_state.font = new_font;
 }
 
 font_t* font_get_font(void) {
-    return current_font;
+    return font_state.font;
 }
 
 void font_set_box_limit(box_limit_t* box_limit) {
-    current_box_limit = (box_limit_t) {
+    font_state.box_limit = (box_limit_t) {
         .height = box_limit->height,
         .width = box_limit->width,
         .x = box_limit->x,
@@ -77,46 +66,54 @@ void font_set_box_limit(box_limit_t* box_limit) {
 }
 
 box_limit_t font_get_box_limit(void) {
-    return current_box_limit;
+    return font_state.box_limit;
 }
 
 void font_set_cursor(cursor_t c) {
-    current_cursor = c;
+    font_state.cursor = c;
 }
 
 cursor_t font_get_cursor(void) {
-    return current_cursor;
+    return font_state.cursor;
 }
 
 void font_set_color(argb_t color) {
-    font_color = color;
+    font_state.color = color;
 }
 
 argb_t font_get_color(void) {
-    return font_color;
+    return font_state.color;
 }
 
 void font_set_background_color(argb_t color) {
-    background_color = color;
+    font_state.background_color = color;
 }
 
 argb_t font_get_background_color(void) {
-    return background_color;
+    return font_state.background_color;
+}
+
+void font_set_scrolling(bool enabled) {
+    font_state.scrolling_enabled = enabled;
 }
 
 void font_scroll(uint32_t lines) {
-    uint32_t dy = lines * current_font->height;
-    for (uint32_t y = current_box_limit.y; y < current_box_limit.y + current_box_limit.height - dy; y++) {
-        for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
+    if (!font_state.scrolling_enabled) {
+        return;
+    }
+
+    uint32_t dy = lines * font_state.font->height;
+    for (uint32_t y = font_state.box_limit.y; y < font_state.box_limit.y + font_state.box_limit.height - dy; y++) {
+        for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
             gfx_draw_pixel(LAYER_UI, x, y, gfx_get_pixel(x, y + dy));
         }
     }
 
     // Clear the new space at the bottom
-    for (uint32_t y = current_box_limit.y + current_box_limit.height - dy;
-         y < current_box_limit.y + current_box_limit.height; y++) {
-        for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
-            gfx_draw_pixel(LAYER_UI, x, y, background_color);
+    for (uint32_t y = font_state.box_limit.y + font_state.box_limit.height - dy;
+         y < font_state.box_limit.y + font_state.box_limit.height; y++) {
+        for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
+            gfx_draw_pixel(LAYER_UI, x, y, font_state.background_color);
         }
     }
 }
@@ -141,7 +138,7 @@ void font_write_char(char c) {
                 if (c == 'm') {
                     font_apply_ansi_color(font_ansi_buf);
                 } else if (c == 'J') {
-                    font_clear(background_color);
+                    font_clear(font_state.background_color);
                 }
                 font_ansi_state = FONT_ANSI_NONE;
                 return;
@@ -161,16 +158,16 @@ void font_write_char(char c) {
         return;
     }
 
-    uint32_t char_width = current_font->width;
-    uint32_t char_height = current_font->height;
+    uint32_t char_width = font_state.font->width;
+    uint32_t char_height = font_state.font->height;
     
-    if (current_cursor.x + char_width > current_box_limit.x + current_box_limit.width) {
-        current_cursor.x = current_box_limit.x;
-        current_cursor.y += char_height;
+    if (font_state.cursor.x + char_width > font_state.box_limit.x + font_state.box_limit.width) {
+        font_state.cursor.x = font_state.box_limit.x;
+        font_state.cursor.y += char_height;
         
-        if (current_cursor.y + char_height > current_box_limit.y + current_box_limit.height) {
+        if (font_state.cursor.y + char_height > font_state.box_limit.y + font_state.box_limit.height) {
             font_scroll(1);
-            current_cursor.y -= char_height;
+            font_state.cursor.y -= char_height;
         }
     }
 
@@ -180,23 +177,23 @@ void font_write_char(char c) {
     }
 
     uint8_t char_index = (uint8_t)c - FONT_FIRST_READABLE_ASCII;
-    const uint8_t* char_bitmap = &current_font->data[char_index * char_height * bytes_per_row];
+    const uint8_t* char_bitmap = &font_state.font->data[char_index * char_height * bytes_per_row];
 
     for (uint32_t y = 0; y < char_height; y++) {
         for (uint32_t x = 0; x < char_width; x++) {
             uint32_t byte_index = y * bytes_per_row + (x / 8);
             uint8_t bit_mask = 0x80 >> (x % 8);
             if (char_bitmap[byte_index] & bit_mask) {
-                gfx_draw_pixel(LAYER_UI, current_cursor.x + x, current_cursor.y + y, font_color);
+                gfx_draw_pixel(LAYER_UI, font_state.cursor.x + x, font_state.cursor.y + y, font_state.color);
             }
         }
     }
 
-    current_cursor.x += char_width;
+    font_state.cursor.x += char_width;
 }
 
 void font_write_char_at(char c, uint32_t x, uint32_t y) {
-    cursor_t prev = current_cursor;
+    cursor_t prev = font_state.cursor;
 
     font_set_cursor((cursor_t){x, y});
     font_write_char(c);
@@ -307,8 +304,8 @@ void font_write_format(const char* fmt, va_list ap) {
 }
 
 void font_clear(argb_t color) {
-    for (uint32_t y = current_box_limit.y; y < current_box_limit.y + current_box_limit.height; y++) {
-        for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
+    for (uint32_t y = font_state.box_limit.y; y < font_state.box_limit.y + font_state.box_limit.height; y++) {
+        for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
             gfx_draw_pixel(LAYER_UI, x, y, color);
         }
     }
@@ -317,21 +314,21 @@ void font_clear(argb_t color) {
 static bool font_handle_escape_char(char c) {
     switch (c) {
         case '\n': {
-            current_cursor.x = current_box_limit.x;
-            current_cursor.y += current_font->height;
+            font_state.cursor.x = font_state.box_limit.x;
+            font_state.cursor.y += font_state.font->height;
 
-            if (current_cursor.y + current_font->height > current_box_limit.y + current_box_limit.height) {
+            if (font_state.cursor.y + font_state.font->height > font_state.box_limit.y + font_state.box_limit.height) {
                 font_scroll(1);
-                current_cursor.y -= current_font->height;
+                font_state.cursor.y -= font_state.font->height;
             }
 
             return true;
         }
         case '\t': {
             uint32_t tab_size = 4;
-            uint32_t next_tab = (current_cursor.x + tab_size) & ~(tab_size - 1);
+            uint32_t next_tab = (font_state.cursor.x + tab_size) & ~(tab_size - 1);
             
-            while (current_cursor.x < next_tab) {
+            while (font_state.cursor.x < next_tab) {
                 font_write_char(' ');
             }
 
@@ -346,14 +343,14 @@ static void font_apply_ansi_color(const char* code) {
     int val = katoi(code);
 
     switch (val) {
-        case 0:  font_color = 0xFFFFFFFF; break; // Reset to white
-        case 30: font_color = 0xFF000000; break; // Black
-        case 31: font_color = 0xFFFF0000; break; // Red
-        case 32: font_color = 0xFF00FF00; break; // Green
-        case 33: font_color = 0xFFFFFF00; break; // Yellow
-        case 34: font_color = 0xFF0000FF; break; // Blue
-        case 35: font_color = 0xFFFF00FF; break; // Magenta
-        case 36: font_color = 0xFF00FFFF; break; // Cyan
-        case 37: font_color = 0xFFFFFFFF; break; // White
+        case 0:  font_state.color = 0xFFFFFFFF; break; // Reset to white
+        case 30: font_state.color = 0xFF000000; break; // Black
+        case 31: font_state.color = 0xFFFF0000; break; // Red
+        case 32: font_state.color = 0xFF00FF00; break; // Green
+        case 33: font_state.color = 0xFFFFFF00; break; // Yellow
+        case 34: font_state.color = 0xFF0000FF; break; // Blue
+        case 35: font_state.color = 0xFFFF00FF; break; // Magenta
+        case 36: font_state.color = 0xFF00FFFF; break; // Cyan
+        case 37: font_state.color = 0xFFFFFFFF; break; // White
     }
 }
