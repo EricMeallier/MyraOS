@@ -9,7 +9,7 @@ typedef struct label_data_t {
     argb_t color;
 } label_data_t;
 
-static void label_draw(widget_t* w) {
+static void widget_label_draw(widget_t* w) {
     font_state_t font_state = font_save_state();
 
     label_data_t* label_data = (label_data_t*) w->data;
@@ -23,7 +23,7 @@ static void label_draw(widget_t* w) {
     font_restore_state(font_state);
 }
 
-widget_t* label_create(int x, int y, const char* text, font_t* font, argb_t color) {
+widget_t* widget_label_create(int x, int y, const char* text, font_t* font, argb_t color) {
     label_data_t* label_data = (label_data_t*) kmalloc(sizeof(label_data_t));
     label_data->text = text;
     label_data->font = font;
@@ -38,7 +38,7 @@ widget_t* label_create(int x, int y, const char* text, font_t* font, argb_t colo
     w->visible = true;
     w->dirty = true;
     w->destroy = false;
-    w->draw = label_draw;
+    w->draw = widget_label_draw;
     w->on_click = NULL;
     
     return w;

@@ -1,7 +1,6 @@
 #include "os_widgets/top_bar_widget.h"
 
 #include "font/fonts/myra_font.h"
-#include "gfx/gfx.h"
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 #include "rtc/rtc.h"
@@ -11,7 +10,7 @@ typedef struct top_bar_data_t {
     argb_t color;
 } top_bar_data_t;
 
-static void top_bar_draw(widget_t* w) {
+static void widget_os_top_bar_draw(widget_t* w) {
     font_state_t font_state = font_save_state();
 
     top_bar_data_t* data = (top_bar_data_t*) w->data;
@@ -35,7 +34,7 @@ static void top_bar_draw(widget_t* w) {
     font_restore_state(font_state);
 }
 
-widget_t* top_bar_create(argb_t color, int x, int y, int height) {
+widget_t* widget_os_top_bar_create(argb_t color, int x, int y, int height) {
     top_bar_data_t* data = kmalloc(sizeof(top_bar_data_t));
     data->color = color;
 
@@ -48,7 +47,7 @@ widget_t* top_bar_create(argb_t color, int x, int y, int height) {
     w->visible = true;
     w->dirty = true;
     w->destroy = false;
-    w->draw = top_bar_draw;
+    w->draw = widget_os_top_bar_draw;
     w->on_click = NULL;
 
     return w;
