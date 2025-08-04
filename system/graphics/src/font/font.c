@@ -108,7 +108,7 @@ void font_scroll(uint32_t lines) {
     uint32_t dy = lines * current_font->height;
     for (uint32_t y = current_box_limit.y; y < current_box_limit.y + current_box_limit.height - dy; y++) {
         for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
-            gfx_draw_pixel(x, y, gfx_get_pixel(x, y + dy));
+            gfx_draw_pixel(LAYER_UI, x, y, gfx_get_pixel(x, y + dy));
         }
     }
 
@@ -116,7 +116,7 @@ void font_scroll(uint32_t lines) {
     for (uint32_t y = current_box_limit.y + current_box_limit.height - dy;
          y < current_box_limit.y + current_box_limit.height; y++) {
         for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
-            gfx_draw_pixel(x, y, background_color);
+            gfx_draw_pixel(LAYER_UI, x, y, background_color);
         }
     }
 }
@@ -187,7 +187,7 @@ void font_write_char(char c) {
             uint32_t byte_index = y * bytes_per_row + (x / 8);
             uint8_t bit_mask = 0x80 >> (x % 8);
             if (char_bitmap[byte_index] & bit_mask) {
-                gfx_draw_pixel(current_cursor.x + x, current_cursor.y + y, font_color);
+                gfx_draw_pixel(LAYER_UI, current_cursor.x + x, current_cursor.y + y, font_color);
             }
         }
     }
@@ -309,7 +309,7 @@ void font_write_format(const char* fmt, va_list ap) {
 void font_clear(argb_t color) {
     for (uint32_t y = current_box_limit.y; y < current_box_limit.y + current_box_limit.height; y++) {
         for (uint32_t x = current_box_limit.x; x < current_box_limit.x + current_box_limit.width; x++) {
-            gfx_draw_pixel(x, y, color);
+            gfx_draw_pixel(LAYER_UI, x, y, color);
         }
     }
 }

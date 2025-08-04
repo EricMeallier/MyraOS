@@ -17,7 +17,7 @@ static void top_bar_draw(widget_t* w) {
     top_bar_data_t* data = (top_bar_data_t*) w->data;
 
     // Draw background
-    gfx_fill_rect(w->x, w->y, w->width, w->height, data->color);
+    gfx_fill_rect(LAYER_UI, w->x, w->y, w->width, w->height, data->color);
 
     // Draw time
     datetime_t dt = rtc_get_system_datetime();

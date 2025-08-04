@@ -7,9 +7,12 @@
 #define MOUSE_IRQ 12
 
 #define CURSOR_SIZE 5
-#define CURSOR_SAFE_MARGIN 1
-#define CURSOR_AREA_SIZE (CURSOR_SIZE + CURSOR_SAFE_MARGIN)
 #define CURSOR_COLOR 0xFFFFFFFF
+
+extern int32_t prev_mouse_x, prev_mouse_y;
+extern int32_t mouse_x, mouse_y;
+
+extern bool cursor_enabled;
 
 void mouse_init(void);
 
