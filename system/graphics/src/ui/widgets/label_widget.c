@@ -23,7 +23,7 @@ static void widget_label_draw(widget_t* w) {
     font_restore_state(font_state);
 }
 
-widget_t* widget_label_create(int x, int y, const char* text, font_t* font, argb_t color) {
+widget_t* widget_label_create(uint32_t x, uint32_t y, const char* text, font_t* font, argb_t color) {
     label_data_t* label_data = (label_data_t*) kmalloc(sizeof(label_data_t));
     label_data->text = text;
     label_data->font = font;

@@ -5,6 +5,6 @@
 #include "font/font.h"
 #include "ui/ui.h"
 
-widget_t* widget_label_create(int x, int y, const char* text, font_t* font, argb_t color);
+widget_t* widget_label_create(uint32_t x, uint32_t y, const char* text, font_t* font, argb_t color);
 
 #endif // LABEL_WIDGET_H

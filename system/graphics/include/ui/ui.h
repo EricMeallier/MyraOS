@@ -7,14 +7,14 @@
 #define MAX_WIDGETS 64
 
 typedef struct widget_t {
-    int x, y, width, height;
+    uint32_t x, y, width, height;
 
     bool dirty;
     bool visible;
     bool destroy;
 
     void (*draw)(struct widget_t*);
-    void (*on_click)(struct widget_t*, int rel_x, int rel_y);
+    void (*on_click)(struct widget_t*, uint32_t rel_x, uint32_t rel_y);
 
     void* data;
 } widget_t;
@@ -22,7 +22,7 @@ typedef struct widget_t {
 void ui_clear(void);
 void ui_add_widget(widget_t* w);
 void ui_render(void);
-void ui_handle_click(int x, int y);
+void ui_handle_click(uint32_t x, uint32_t y);
 void ui_destroy_widget(widget_t* w);
 void ui_set_dirty(widget_t* w);
 

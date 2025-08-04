@@ -34,7 +34,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
     font_restore_state(font_state);
 }
 
-widget_t* widget_os_top_bar_create(argb_t color, int x, int y, int height) {
+widget_t* widget_os_top_bar_create(uint32_t x, uint32_t y, int height, argb_t color) {
     top_bar_data_t* data = kmalloc(sizeof(top_bar_data_t));
     data->color = color;
 
