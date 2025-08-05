@@ -235,19 +235,27 @@ void gfx_flush_dirty(void) {
                 color = blend_argb(color, layers[LAYER_OVERLAY][offset]);
                 color = blend_argb(color, layers[LAYER_CURSOR][offset]);
 
-                double_buffer[offset] = color;
+                if (double_buffer[offset] != color) {
+                    double_buffer[offset] = color;
+                    ((uint32_t*)fb_info.addr)[offset] = color;
+                }
             }
-        }
-
-        for (int row = 0; row < h; row++) {
-            uint32_t* dst = &((uint32_t*)fb_info.addr)[(r->y_min + row) * fb_info.pixels_per_row + r->x_min];
-            uint32_t* src = &double_buffer[(r->y_min + row) * fb_info.pixels_per_row + r->x_min];
-            kmemcpy(dst, src, w * sizeof(argb_t));
         }
     }
 }
 
 void gfx_flush(void) {
+     uint32_t total = fb_info.pixels_per_row * fb_info.height;
+
+    for (uint32_t i = 0; i < total; i++) {
+        argb_t color = layers[LAYER_BACKGROUND][i];
+        color = blend_argb(color, layers[LAYER_UI][i]);
+        color = blend_argb(color, layers[LAYER_OVERLAY][i]);
+        color = blend_argb(color, layers[LAYER_CURSOR][i]);
+
+        double_buffer[i] = color;
+    }
+    
     fb_flush(double_buffer);
 }
 
@@ -283,7 +291,7 @@ void gfx_mark_dirty(layer_id_t layer, int x, int y) {
             r->y_min = r->y_min < y0 ? r->y_min : y0;
             r->x_max = r->x_max > x1 ? r->x_max : x1;
             r->y_max = r->y_max > y1 ? r->y_max : y1;
-            
+
             return;
         }
     }
