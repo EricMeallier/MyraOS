@@ -29,6 +29,6 @@ void gfx_clear(layer_id_t layer, argb_t color);
 void gfx_flush_dirty(void);
 void gfx_flush(void);
 
-void gfx_mark_dirty(int x, int y);
+void gfx_mark_dirty(layer_id_t layer, int x, int y);
 
 #endif // GFX_H

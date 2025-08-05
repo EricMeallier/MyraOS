@@ -41,7 +41,7 @@ static void draw_mouse(void) {
 
     gfx_fill_circle(LAYER_CURSOR, mouse_x, mouse_y, CURSOR_SIZE, 0xFFFFFFFF);
 
-    gfx_mark_dirty(mouse_fill_x, mouse_fill_y);
+    gfx_mark_dirty(LAYER_CURSOR, mouse_fill_x, mouse_fill_y);
 
     prev_mouse_x = mouse_x;
     prev_mouse_y = mouse_y;

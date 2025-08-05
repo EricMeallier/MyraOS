@@ -10,7 +10,7 @@ typedef struct {
     bool dirty;
 } gfx_dirty_rect_t;
 
-static gfx_dirty_rect_t dirty_rects[MAX_DIRTY_RECTS];
+static gfx_dirty_rect_t dirty_rects[LAYER_COUNT][MAX_DIRTY_RECTS];
 
 static inline argb_t blend_argb(argb_t bottom, argb_t top);
 static void blend_pixel_layer(layer_id_t layer, uint32_t x, uint32_t y, argb_t color, uint8_t alpha);
@@ -29,8 +29,10 @@ void gfx_init(void) {
         kmemset(layers[i], 0, buffer_size);
     }
 
-    for (uint32_t i = 0; i < MAX_DIRTY_RECTS; i++) {
-        dirty_rects[i].dirty = false;
+    for (uint32_t layer = 0; layer < LAYER_COUNT; layer++) {
+        for (uint32_t i = 0; i < MAX_DIRTY_RECTS; i++) {
+            dirty_rects[layer][i].dirty = false;
+        }
     }
 }
 
@@ -42,7 +44,7 @@ void gfx_draw_pixel(layer_id_t layer, uint32_t x, uint32_t y, argb_t color) {
     uint32_t offset = y * fb_info.pixels_per_row + x;
     layers[layer][offset] = color;
 
-    gfx_mark_dirty(x, y);
+    gfx_mark_dirty(layer, x, y);
 }
 
 argb_t gfx_get_pixel(uint32_t x, uint32_t y) {
@@ -175,7 +177,7 @@ void gfx_clear(layer_id_t layer, argb_t color) {
         layers[layer][i] = color;
     }
 
-    dirty_rects[0] = (gfx_dirty_rect_t){
+    dirty_rects[layer][0] = (gfx_dirty_rect_t){
         .x_min = 0,
         .y_min = 0,
         .x_max = fb_info.width - 1,
@@ -185,12 +187,40 @@ void gfx_clear(layer_id_t layer, argb_t color) {
 }
 
 void gfx_flush_dirty(void) {
-    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
-        if (!dirty_rects[i].dirty) {
-            continue;
-        }
+    gfx_dirty_rect_t final_rects[MAX_DIRTY_RECTS];
+    int final_count = 0;
 
-        gfx_dirty_rect_t* r = &dirty_rects[i];
+    for (layer_id_t l = 0; l < LAYER_COUNT; l++) {
+        for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+            if (!dirty_rects[l][i].dirty) {
+                continue;
+            }
+            gfx_dirty_rect_t r = dirty_rects[l][i];
+
+            // Merge with existing final_rects
+            bool merged = false;
+            for (int j = 0; j < final_count; j++) {
+                gfx_dirty_rect_t* fr = &final_rects[j];
+                if (!(r.x_max < fr->x_min || r.x_min > fr->x_max || r.y_max < fr->y_min || r.y_min > fr->y_max)) {
+                    fr->x_min = fr->x_min < r.x_min ? fr->x_min : r.x_min;
+                    fr->y_min = fr->y_min < r.y_min ? fr->y_min : r.y_min;
+                    fr->x_max = fr->x_max > r.x_max ? fr->x_max : r.x_max;
+                    fr->y_max = fr->y_max > r.y_max ? fr->y_max : r.y_max;
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged && final_count < MAX_DIRTY_RECTS) {
+                final_rects[final_count++] = r;
+            }
+
+            dirty_rects[l][i].dirty = false;
+        }
+    }
+
+    for (int i = 0; i < final_count; i++) {
+        gfx_dirty_rect_t* r = &final_rects[i];
         int w = r->x_max - r->x_min + 1;
         int h = r->y_max - r->y_min + 1;
 
@@ -214,8 +244,6 @@ void gfx_flush_dirty(void) {
             uint32_t* src = &double_buffer[(r->y_min + row) * fb_info.pixels_per_row + r->x_min];
             kmemcpy(dst, src, w * sizeof(argb_t));
         }
-
-        r->dirty = false;
     }
 }
 
@@ -223,7 +251,7 @@ void gfx_flush(void) {
     fb_flush(double_buffer);
 }
 
-void gfx_mark_dirty(int x, int y) {
+void gfx_mark_dirty(layer_id_t layer, int x, int y) {
     if (x >= (int)fb_info.width || y >= (int)fb_info.height) { 
         return;
     }
@@ -245,25 +273,25 @@ void gfx_mark_dirty(int x, int y) {
 
     // Try to merge with existing rect
     for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
-        if (!dirty_rects[i].dirty) {
+        if (!dirty_rects[layer][i].dirty) {
             continue;
         }
 
-        gfx_dirty_rect_t* r = &dirty_rects[i];
-
+        gfx_dirty_rect_t* r = &dirty_rects[layer][i];
         if (!(x1 < r->x_min || x0 > r->x_max || y1 < r->y_min || y0 > r->y_max)) {
             r->x_min = r->x_min < x0 ? r->x_min : x0;
             r->y_min = r->y_min < y0 ? r->y_min : y0;
             r->x_max = r->x_max > x1 ? r->x_max : x1;
             r->y_max = r->y_max > y1 ? r->y_max : y1;
+            
             return;
         }
     }
 
     // Add new rect
     for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
-        if (!dirty_rects[i].dirty) {
-            dirty_rects[i] = (gfx_dirty_rect_t){ x0, y0, x1, y1, true };
+        if (!dirty_rects[layer][i].dirty) {
+            dirty_rects[layer][i] = (gfx_dirty_rect_t){ x0, y0, x1, y1, true };
             return;
         }
     }
@@ -311,5 +339,5 @@ static void blend_pixel_layer(layer_id_t layer, uint32_t x, uint32_t y, argb_t c
     uint8_t out_b = (src_b * alpha + dst_b * (255 - alpha)) / 255;
 
     layers[layer][offset] = (alpha << 24) | (out_r << 16) | (out_g << 8) | out_b;
-    gfx_mark_dirty(x, y);
+    gfx_mark_dirty(layer, x, y);
 }
