@@ -15,9 +15,7 @@ void isr_handler(const registers_t* regs) {
     if ((regs->cs & RING_3) == RING_3) {
         schedule_current_proc->state = PROCESS_TERMINATED;
 
-        __asm__ volatile ("sti");
         ulog_errorf_nb("Process %d crashed with error: %s", schedule_current_proc->pid, message);
-        __asm__ volatile ("cli");
         
         schedule_next();
 

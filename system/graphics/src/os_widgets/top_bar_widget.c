@@ -34,6 +34,14 @@ static void widget_os_top_bar_draw(widget_t* w) {
     font_restore_state(font_state);
 }
 
+static void widget_os_top_bar_event(widget_t* w, const ui_event_t* event) {
+    if (event->type == UI_EVENT_TICK) {
+        if (event->tick.system_ticks % 100 == 0) {
+            ui_set_dirty(w);
+        }
+    }
+}
+
 widget_t* widget_os_top_bar_create(uint32_t x, uint32_t y, int height, argb_t color) {
     top_bar_data_t* data = kmalloc(sizeof(top_bar_data_t));
     data->color = color;
@@ -48,7 +56,7 @@ widget_t* widget_os_top_bar_create(uint32_t x, uint32_t y, int height, argb_t co
     w->dirty = true;
     w->destroy = false;
     w->draw = widget_os_top_bar_draw;
-    w->on_click = NULL;
+    w->on_event = widget_os_top_bar_event;
 
     return w;
 }

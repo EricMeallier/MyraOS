@@ -45,10 +45,19 @@ void ui_render(void) {
     }
 }
 
+void ui_dispatch_event(const ui_event_t* e) {
+    for (int i = ui_widget_count - 1; i >= 0; i--) {
+        widget_t* w = ui_widgets[i];
+        if (w->visible && w->on_event) {
+            w->on_event(w, e);
+        }
+    }
+}
+
 void ui_handle_click(uint32_t x, uint32_t y) {
     for (int i = ui_widget_count - 1; i >= 0; i--) {
         widget_t* w = ui_widgets[i];
-        if (!w->visible || !w->on_click) {
+        if (!w->visible || !w->on_event) {
             continue;
         }
 
@@ -56,7 +65,14 @@ void ui_handle_click(uint32_t x, uint32_t y) {
             uint32_t rel_x = x - w->x;
             uint32_t rel_y = y - w->y;
 
-            w->on_click(w, rel_x, rel_y);
+            ui_event_t e = {
+                .type = UI_EVENT_CLICK,
+                .click = {
+                    .rel_x = rel_x,
+                    .rel_y = rel_y
+                }
+            };
+            w->on_event(w, &e);
             
             return; 
         }

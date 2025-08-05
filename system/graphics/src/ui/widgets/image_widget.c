@@ -33,7 +33,7 @@ widget_t* widget_image_create(uint32_t x, uint32_t y, const image_t* image) {
     w->dirty = true;
     w->destroy = false;
     w->draw = image_draw;
-    w->on_click = NULL;
+    w->on_event = NULL;
 
     return w;
 }

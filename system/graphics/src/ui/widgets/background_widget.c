@@ -25,7 +25,7 @@ widget_t* widget_background_create(argb_t color) {
     w->dirty = true;
     w->destroy = false;
     w->draw = widget_background_draw;
-    w->on_click = NULL;
+    w->on_event = NULL;
 
     return w;
 }

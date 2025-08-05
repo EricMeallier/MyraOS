@@ -39,7 +39,7 @@ widget_t* widget_label_create(uint32_t x, uint32_t y, const char* text, font_t* 
     w->dirty = true;
     w->destroy = false;
     w->draw = widget_label_draw;
-    w->on_click = NULL;
+    w->on_event = NULL;
     
     return w;
 }

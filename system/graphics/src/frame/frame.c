@@ -3,8 +3,9 @@
 #include <stdbool.h>
 
 #include "gfx/gfx.h"
-#include "mouse/mouse.h"
 #include "libc_kernel/string.h"
+#include "mouse/mouse.h"
+#include "pit/pit.h"
 #include "ui/ui.h"
 
 static screen_t* current_screen;
@@ -14,6 +15,14 @@ static void draw_mouse(void);
 void frame_render(void) {
     if (current_screen) {
         ui_render();
+
+        ui_event_t tick_event = {
+            .type = UI_EVENT_TICK,
+            .tick = {
+                .system_ticks = pit_ticks()
+            }
+        };
+        ui_dispatch_event(&tick_event);
     }
 
     draw_mouse();
