@@ -21,7 +21,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
     // Draw time
     datetime_t dt = rtc_get_system_datetime();
     font_set_cursor((cursor_t){10, w->y + (w->height - myra_font.height) / 2});
-    font_writef("%02d/%02d %02d:%02d:%02d", dt.day, dt.month, dt.hour, dt.minute, dt.second);
+    font_writef("%02d/%02d %02d:%02d", dt.day, dt.month, dt.hour, dt.minute);
 
     // Draw "MyraOS" label
     const char* title = "MyraOS";
@@ -36,7 +36,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
 
 static void widget_os_top_bar_event(widget_t* w, const ui_event_t* event) {
     if (event->type == UI_EVENT_TICK) {
-        if (event->tick.system_ticks % 100 == 0) {
+        if (event->tick.system_ticks % 6000 == 0) {
             ui_set_dirty(w);
         }
     }
