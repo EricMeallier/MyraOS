@@ -32,5 +32,6 @@ void gfx_flush_dirty(void);
 void gfx_flush(void);
 
 void gfx_mark_dirty(layer_id_t layer, int x, int y);
+void gfx_mark_dirty_rect(layer_id_t layer, int x, int y, int w, int h);
 
 #endif // GFX_H

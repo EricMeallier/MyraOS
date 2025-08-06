@@ -381,6 +381,76 @@ void gfx_mark_dirty(layer_id_t layer, int x, int y) {
     }
 }
 
+void gfx_mark_dirty_rect(layer_id_t layer, int x, int y, int w, int h) {
+    if (w <= 0 || h <= 0) {
+        return;
+    }
+
+    int x0 = x;
+    int y0 = y;
+    int x1 = x + w - 1;
+    int y1 = y + h - 1;
+
+    if (x1 < 0 || y1 < 0) {
+        return;
+    }
+
+    if (x0 >= (int)fb_info.width || y0 >= (int)fb_info.height) {
+        return;
+    }
+
+    if (x0 < 0) { 
+        x0 = 0;
+    }
+
+    if (y0 < 0) { 
+        y0 = 0;
+    }
+
+    if (x1 >= (int)fb_info.width) { 
+        x1 = (int)fb_info.width - 1;
+    }
+
+    if (y1 >= (int)fb_info.height) { 
+        y1 = (int)fb_info.height - 1;
+    }
+
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        if (!dirty_rects[layer][i].dirty) {
+            continue;
+        }
+
+        gfx_dirty_rect_t* r = &dirty_rects[layer][i];
+
+        if (!(x1 < r->x_min || x0 > r->x_max || y1 < r->y_min || y0 > r->y_max)) {
+            if (x0 < r->x_min) { 
+                r->x_min = x0; 
+            }
+            
+            if (y0 < r->y_min) { 
+                r->y_min = y0; 
+            }
+
+            if (x1 > r->x_max) { 
+                r->x_max = x1;
+            }
+
+            if (y1 > r->y_max) { 
+                r->y_max = y1; 
+            }
+
+            return;
+        }
+    }
+
+    for (int i = 0; i < MAX_DIRTY_RECTS; i++) {
+        if (!dirty_rects[layer][i].dirty) {
+            dirty_rects[layer][i] = (gfx_dirty_rect_t){ x0, y0, x1, y1, true };
+            return;
+        }
+    }
+}
+
 static inline argb_t blend_argb(argb_t bottom, argb_t top) {
     if ((top >> 24) == 0) {
         return bottom;
