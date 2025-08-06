@@ -111,6 +111,82 @@ void gfx_fill_rect(layer_id_t layer, uint32_t x, uint32_t y, uint32_t width, uin
     }
 }
 
+void gfx_draw_round_rect(layer_id_t layer, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t r, argb_t color) {
+    if (w == 0 || h == 0) {
+        return;
+    }
+
+    if (r * 2 > w) {
+        r = w / 2;
+    }
+    if (r * 2 > h) {
+        r = h / 2;
+    }
+
+    uint32_t x0 = x + r, x1 = x + w - r - 1;
+    uint32_t y0 = y, y1 = y + h - 1;
+    gfx_draw_line(layer, x0, y0, x1, y0, color);
+    gfx_draw_line(layer, x0, y1, x1, y1, color);
+    gfx_draw_line(layer, x, y + r, x, y + h - r - 1, color);
+    gfx_draw_line(layer, x + w - 1, y + r, x + w - 1, y + h - r - 1, color);
+
+    int cx[4] = { (int)(x + r), (int)(x + w - r - 1), (int)(x + w - r - 1), (int)(x + r) };
+    int cy[4] = { (int)(y + r), (int)(y + r), (int)(y + h - r - 1), (int)(y + h - r - 1) };
+    int sx[4] = { -1, 1, 1, -1 };
+    int sy[4] = { -1, -1, 1, 1 };
+
+    int xx = (int)r, yy = 0, err = 0;
+    while (xx >= yy) {
+        for (int q = 0; q < 4; q++) {
+            gfx_draw_pixel(layer, (uint32_t)(cx[q] + sx[q] * xx), (uint32_t)(cy[q] + sy[q] * yy), color);
+            gfx_draw_pixel(layer, (uint32_t)(cx[q] + sx[q] * yy), (uint32_t)(cy[q] + sy[q] * xx), color);
+        }
+        yy++; err += 1 + 2 * yy;
+        if (2 * (err - xx) + 1 > 0) { 
+            xx--;
+            err += 1 - 2 * xx;
+        }
+    }
+}
+
+void gfx_fill_round_rect(layer_id_t layer, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t r, argb_t color) {
+    if (w == 0 || h == 0) {
+        return;
+    }
+
+    if (r * 2 > w) {
+        r = w / 2;
+    }
+    if (r * 2 > h) {
+        r = h / 2;
+    }
+
+    if (r == 0) {
+        gfx_fill_rect(layer, x, y, w, h, color);
+        return;
+    }
+
+    int64_t rsq = (int64_t) r * (int64_t) r;
+    int xoff = 0;
+
+    for (int yy = 0; yy < (int) r; yy++) {
+        int yrel = (int) r - 1 - yy;
+        while ((int64_t) (xoff + 1) * (xoff + 1) + (int64_t) yrel * yrel < rsq) {
+            xoff++;
+        }
+
+        uint32_t left = x + r - xoff;
+        uint32_t right = x + w - r + xoff - 1;
+
+        gfx_draw_line(layer, left, y + yy, right, y + yy, color);
+        gfx_draw_line(layer, left, y + h - 1 - yy, right, y + h - 1 - yy, color);
+    }
+
+    for (uint32_t yy = y + r; yy < y + h - r; yy++) {
+        gfx_draw_line(layer, x, yy, x + w - 1, yy, color);
+    }
+}
+
 void gfx_draw_circle(layer_id_t layer, uint32_t cx, uint32_t cy, uint32_t radius, argb_t color) {
     int x = radius;
     int y = 0;
