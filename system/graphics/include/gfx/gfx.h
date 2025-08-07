@@ -7,6 +7,7 @@
 
 typedef enum {
     LAYER_BACKGROUND,
+    LAYER_APP,
     LAYER_UI,
     LAYER_OVERLAY,
     LAYER_CURSOR,
@@ -25,6 +26,8 @@ void gfx_fill_round_rect(layer_id_t layer, uint32_t x, uint32_t y, uint32_t w, u
 void gfx_draw_circle(layer_id_t layer, uint32_t cx, uint32_t cy, uint32_t radius, argb_t color);
 void gfx_fill_circle(layer_id_t layer, uint32_t cx, uint32_t cy, uint32_t radius, argb_t color);
 void gfx_draw_polygon(layer_id_t layer, const uint32_t* xs, const uint32_t* ys, size_t count, argb_t color);
+
+void gfx_blit(layer_id_t layer, uint32_t dst_x, uint32_t dst_y, uint32_t dst_w, uint32_t dst_h, const uint32_t* src_pixels, uint32_t src_w, uint32_t src_h, uint32_t src_pitch_bytes);
 
 void gfx_clear(layer_id_t layer, argb_t color);
 

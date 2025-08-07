@@ -247,6 +247,43 @@ void gfx_draw_polygon(layer_id_t layer, const uint32_t* xs, const uint32_t* ys, 
     gfx_draw_line(layer, lx, ly, xs[0], ys[0], color);
 }
 
+void gfx_blit(layer_id_t layer, uint32_t dst_x, uint32_t dst_y, uint32_t dst_w, uint32_t dst_h, const uint32_t* src_pixels, uint32_t src_w, uint32_t src_h, uint32_t src_pitch_bytes) {
+    if (!dst_w || !dst_h || !src_w || !src_h) {
+        return;
+    }
+
+    uint32_t src_pitch_px = src_pitch_bytes / 4;
+
+    if (src_w == dst_w && src_h == dst_h) {
+        for (uint32_t y = 0; y < dst_h; y++) {
+            const uint32_t* srow = src_pixels + y * src_pitch_px;
+            uint32_t* drow = &layers[layer][(dst_y + y) * fb_info.pixels_per_row + dst_x];
+            kmemcpy(drow, srow, dst_w * 4);
+        }
+
+        gfx_mark_dirty_rect(layer, (int)dst_x, (int)dst_y, (int)dst_w, (int)dst_h);
+
+        return;
+    }
+
+    uint32_t sy = 0, acc_y = 0;
+    for (uint32_t dy = 0; dy < dst_h; dy++) {
+        const uint32_t* srow = src_pixels + sy * src_pitch_px;
+        uint32_t* drow = &layers[layer][(dst_y + dy) * fb_info.pixels_per_row + dst_x];
+
+        uint32_t sx = 0, acc_x = 0;
+        for (uint32_t dx = 0; dx < dst_w; dx++) {
+            drow[dx] = srow[sx];
+            acc_x += src_w;
+            while (acc_x >= dst_w) { acc_x -= dst_w; sx++; }
+        }
+        acc_y += src_h;
+        while (acc_y >= dst_h) { acc_y -= dst_h; sy++; }
+    }
+
+    gfx_mark_dirty_rect(layer, (int)dst_x, (int)dst_y, (int)dst_w, (int)dst_h);
+}
+
 void gfx_clear(layer_id_t layer, argb_t color) {
     uint32_t total = fb_info.pixels_per_row * fb_info.height;
     for (uint32_t i = 0; i < total; i++) {
@@ -307,6 +344,7 @@ void gfx_flush_dirty(void) {
                 int offset = y * fb_info.pixels_per_row + x;
 
                 argb_t color = layers[LAYER_BACKGROUND][offset];
+                color = blend_argb(color, layers[LAYER_APP][offset]);
                 color = blend_argb(color, layers[LAYER_UI][offset]);
                 color = blend_argb(color, layers[LAYER_OVERLAY][offset]);
                 color = blend_argb(color, layers[LAYER_CURSOR][offset]);
@@ -426,7 +464,7 @@ void gfx_mark_dirty_rect(layer_id_t layer, int x, int y, int w, int h) {
             if (x0 < r->x_min) { 
                 r->x_min = x0; 
             }
-            
+
             if (y0 < r->y_min) { 
                 r->y_min = y0; 
             }
