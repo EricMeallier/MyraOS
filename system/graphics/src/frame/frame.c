@@ -14,7 +14,7 @@ static void draw_mouse(void);
 
 void frame_render(void) {
     if (current_screen) {
-        ui_render();
+        ui_frame();
 
         ui_event_t tick_event = {
             .type = UI_EVENT_TICK,

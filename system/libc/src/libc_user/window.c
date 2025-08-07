@@ -5,6 +5,7 @@
 #define SYS_WINDOW_GET_SURFACE     351
 #define SYS_WINDOW_DESTROY         352
 #define SYS_WINDOW_PRESENT         353
+#define SYS_WINDOW_SET_TITLE       354
 
 static inline int syscall(int num, int arg1, int arg2, int arg3) {
     int ret;
@@ -39,4 +40,8 @@ int window_present(window_t h) {
 
 int window_destroy(window_t h) {
     return syscall(SYS_WINDOW_DESTROY, (int)h, 0, 0);
+}
+
+int window_set_title(win_handle_t h, const char* title) {
+    return syscall(SYS_WINDOW_SET_TITLE, h, (uint32_t)title, 0);
 }

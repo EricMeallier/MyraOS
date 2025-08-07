@@ -23,7 +23,9 @@ typedef struct widget_t {
 
 void ui_clear(void);
 void ui_add_widget(widget_t* w);
+void ui_frame(void);
 void ui_render(void);
+void ui_destroy(void);
 void ui_dispatch_event(const ui_event_t* e);
 void ui_handle_click(uint32_t x, uint32_t y);
 void ui_destroy_widget(widget_t* w);

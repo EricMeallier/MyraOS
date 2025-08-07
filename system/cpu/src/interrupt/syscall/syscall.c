@@ -15,10 +15,11 @@ extern uint32_t sys_write(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_read(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_forkexec(uint32_t path_addr, uint32_t unused0 __attribute__((unused)), uint32_t unused1 __attribute__((unused)), uint32_t unused2 __attribute__((unused)));
 
-extern uint32_t sys_window_create_fullscreen(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_window_create(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_window_get_surface(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_window_destroy(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_window_present(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_window_set_title(uint32_t handle, uint32_t user_title_ptr, uint32_t _, uint32_t __);
 
 static void register_syscall(uint32_t index, syscall_func_t func) {
     if (index < SYSCALL_MAX) {
@@ -39,10 +40,11 @@ void syscall_init(void) {
     register_syscall(SYS_READ,    sys_read);
     register_syscall(SYS_EXECVE,  sys_forkexec);
 
-    register_syscall(SYS_WINDOW_CREATE, sys_window_create_fullscreen);
+    register_syscall(SYS_WINDOW_CREATE,            sys_window_create);
     register_syscall(SYS_WINDOW_GET_SURFACE,       sys_window_get_surface);
     register_syscall(SYS_WINDOW_DESTROY,           sys_window_destroy);
     register_syscall(SYS_WINDOW_PRESENT,           sys_window_present);
+    register_syscall(SYS_WINDOW_SET_TITLE,         sys_window_set_title);
 
 }
 

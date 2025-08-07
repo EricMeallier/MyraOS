@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #include "heap/heap.h"
+#include "gfx/gfx.h"
 
 static widget_t* ui_widgets[MAX_WIDGETS];
 static size_t ui_widget_count = 0;
@@ -27,20 +28,51 @@ void ui_add_widget(widget_t* w) {
         return;
     }
 
+    w->dirty = true;
     ui_widgets[ui_widget_count++] = w;
+}
+
+void ui_frame(void) {
+    ui_destroy();
+    ui_render();
 }
 
 void ui_render(void) {
     for (size_t i = 0; i < ui_widget_count; i++) {
         widget_t* w = ui_widgets[i];
+        if (w->visible && w->draw && w->dirty) {
+            w->draw(w);
+            w->dirty = false;
+        }
+    }
+}
+
+void ui_destroy(void) {
+    for (size_t i = 0; i < ui_widget_count; i++) {
+        widget_t* w = ui_widgets[i];
         if (w->destroy) {
+            gfx_fill_rect(LAYER_UI, w->x, w->y, w->width, w->height, 0x00000000);
+            gfx_mark_dirty_rect(LAYER_UI, w->x, w->y, w->width, w->height);
+            gfx_fill_rect(LAYER_APP, w->x, w->y, w->width, w->height, 0x00000000);
+            gfx_mark_dirty_rect(LAYER_APP, w->x, w->y, w->width, w->height);
+
             for (size_t j = i; j < ui_widget_count - 1; j++) {
                 ui_widgets[j] = ui_widgets[j + 1];
             }
+
             ui_widget_count--;
-        } else if (w->visible && w->draw && w->dirty) {
-            w->draw(w);
-            w->dirty = false;
+
+            for (size_t j = 0; j < ui_widget_count; j++) {
+                widget_t* cw = ui_widgets[j];
+                bool overlaps = !(cw->x + cw->width <= w->x || cw->x >= w->x + w->width || cw->y + cw->height <= w->y || cw->y >= w->y + w->height);
+                if (overlaps) {
+                    ui_set_dirty(cw);
+                }
+            }
+
+            kfree(w->data);
+            kfree(w);
+            w = NULL;
         }
     }
 }

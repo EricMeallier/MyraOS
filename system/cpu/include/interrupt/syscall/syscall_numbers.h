@@ -114,5 +114,6 @@
 #define SYS_WINDOW_GET_SURFACE    351
 #define SYS_WINDOW_DESTROY        352
 #define SYS_WINDOW_PRESENT        353
+#define SYS_WINDOW_SET_TITLE      354
 
 #endif // SYSCALL_NUMBERS_H

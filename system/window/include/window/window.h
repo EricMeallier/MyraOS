@@ -33,6 +33,9 @@ typedef struct window_t {
 
     uint32_t npages;
     uint32_t* frames;
+
+    bool has_widget;
+    char* title;
 } window_t;
 
 void window_init(void);
