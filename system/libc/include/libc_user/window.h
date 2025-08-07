@@ -1,5 +1,5 @@
-#ifndef LIBC_WINDOW_H
-#define LIBC_WINDOW_H
+#ifndef LIBC_USER_WINDOW_H
+#define LIBC_USER_WINDOW_H
 
 #include <stdint.h>
 
@@ -17,4 +17,4 @@ int window_present(window_t h);
 int window_destroy(window_t h);
 int window_set_title(win_handle_t h, const char* title);
 
-#endif
+#endif // LIBC_USER_WINDOW_H
