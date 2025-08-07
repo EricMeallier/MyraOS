@@ -4,7 +4,7 @@
 #include "interrupt/idt/idt.h"
 
 #define PIT_BASE_HZ 1193182
-#define PIT_HZ 100
+#define PIT_HZ 1000
 
 #define PIT_IRQ 0
 
