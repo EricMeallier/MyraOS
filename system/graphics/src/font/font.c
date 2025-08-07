@@ -40,6 +40,19 @@ void font_init_default(font_t* default_font) {
     font_set_scrolling(false);
 }
 
+void font_restore_default(void) {
+    box_limit_t box_limit;
+    box_limit.x = FONT_DEFAULT_LOCATION;
+    box_limit.y = FONT_DEFAULT_LOCATION;
+    box_limit.height = fb_info.height;
+    box_limit.width = fb_info.width;
+    font_set_box_limit(&box_limit);
+    font_set_background_color(FONT_DEFAULT_BACKGROUND);
+    font_set_color(FONT_DEFAULT_COLOR);
+    font_set_cursor((cursor_t) {FONT_DEFAULT_LOCATION, FONT_DEFAULT_LOCATION});
+    font_set_scrolling(false);
+}
+
 font_state_t font_save_state(void) {
     return font_state;
 }

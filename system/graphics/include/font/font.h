@@ -33,6 +33,7 @@ typedef struct font_state_t {
 } font_state_t;
 
 void font_init_default(font_t* default_font);
+void font_restore_default(void);
 
 font_state_t font_save_state(void);
 void font_restore_state(font_state_t state);
