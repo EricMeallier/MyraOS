@@ -28,15 +28,13 @@ void pit_handler(registers_t* regs) {
 
     outb(0x20, 0x20);
 
-    if (tick_count % 10 == 0) {
-        input_process();
+    input_process();
 
-        frame_render();
+    frame_render();
 
-        if ((regs->cs & RING_3) == RING_3) {
-            schedule_save_context(regs);
-            schedule_next();
-        }
+    if ((regs->cs & RING_3) == RING_3) {
+        schedule_save_context(regs);
+        schedule_next();
     }
 }
 

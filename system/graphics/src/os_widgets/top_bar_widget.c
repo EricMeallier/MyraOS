@@ -21,6 +21,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
     // Draw time
     datetime_t dt = rtc_get_system_datetime();
     font_set_cursor((cursor_t){10, w->y + (w->height - myra_font.height) / 2});
+    font_set_color(0xFFFFFFFF);
     font_writef("%02d/%02d %02d:%02d", dt.day, dt.month, dt.hour, dt.minute);
 
     // Draw "MyraOS" label
