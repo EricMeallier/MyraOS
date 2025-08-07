@@ -109,4 +109,10 @@
 #define SYS_TIMES             43
 #define SYS_UNAME             122
 
+// ========== Windows/Graphics ==========
+#define SYS_WINDOW_CREATE         350
+#define SYS_WINDOW_GET_SURFACE    351
+#define SYS_WINDOW_DESTROY        352
+#define SYS_WINDOW_PRESENT        353
+
 #endif // SYSCALL_NUMBERS_H
