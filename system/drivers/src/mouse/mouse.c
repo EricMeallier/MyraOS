@@ -53,10 +53,6 @@ void mouse_set(bool is_enabled) {
 }
 
 static void mouse_handler(registers_t* _) {
-    if (!cursor_enabled) {
-        return;
-    }
-
     (void) _;
 
     uint8_t data = inb(0x60);
