@@ -7,9 +7,12 @@
 #include "io/port_io.h"
 #include "interrupt/irq/irq.h"
 #include "libc_kernel/string.h"
+#include "ui/ui.h"
 
 static int8_t mouse_cycle = 0;
 static int8_t mouse_bytes[3];
+
+static bool prev_left_btn = false;
 
 int32_t prev_mouse_x = 0, prev_mouse_y = 0;
 int32_t mouse_x = 0, mouse_y = 0;
@@ -17,6 +20,7 @@ int32_t mouse_x = 0, mouse_y = 0;
 bool cursor_enabled = false;
 
 static void mouse_handler(registers_t* _);
+static void handle_click(void);
 
 void mouse_init(void) {
     outb(0x64, 0xA8);
@@ -59,6 +63,8 @@ static void mouse_handler(registers_t* _) {
     mouse_bytes[mouse_cycle++] = data;
 
     if (mouse_cycle == 3) {
+        handle_click();
+
         int8_t dx = mouse_bytes[1];
         int8_t dy = mouse_bytes[2];
         mouse_x += dx;
@@ -78,4 +84,14 @@ static void mouse_handler(registers_t* _) {
 
         mouse_cycle = 0;
     }
+}
+
+static void handle_click(void) {
+    bool left_btn = mouse_bytes[0] & 0x1;
+
+    if (left_btn && !prev_left_btn) {
+        ui_handle_click((uint32_t)mouse_x, (uint32_t)mouse_y);
+    }
+
+    prev_left_btn = left_btn;
 }
