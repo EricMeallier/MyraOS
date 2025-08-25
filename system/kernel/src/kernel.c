@@ -20,18 +20,25 @@
 #include "rtc/rtc.h"
 #include "schedule/schedule.h"
 #include "screen/screen.h"
+#include "stack/stack.h"
 #include "tty/tty.h"
 #include "vmm/vmm.h"
 
 extern uint32_t multiboot_info_addr;
 extern void parse_multiboot_info(uint32_t addr);
 
-void kernel_main(void) {
+void kernel_main(void);
+void kernel_memory_setup(void);
+
+void kernel_memory_setup(void) {
     pmm_init();
     vmm_init();
     
     heap_init(HEAP_START_ADDR, HEAP_SIZE);
+    stack_init(STACK_BASE, STACK_SIZE, kernel_main);
+}
 
+void kernel_main(void) {
     gdt_init();
 
     idt_init();
@@ -61,9 +68,9 @@ void kernel_main(void) {
 
     size_t shell_elf_size = 0;
     bool succeeded = true;
-    void* shell_elf_data = (void*) ext2_read_file(root_fs, "/bin/shell.elf", &shell_elf_size, &succeeded);
+    void* shell_elf_data = (void*) ext2_read_file(root_fs, "/programs/doom.elf", &shell_elf_size, &succeeded);
     if (!succeeded) {
-        klog_error("Loading shell ELF failed");
+        klog_error("Loading demo ELF failed");
     }
 
     elf_load_info_t shell_load_info;
@@ -78,7 +85,6 @@ void kernel_main(void) {
     frame_set_screen(&screen_desktop);
 
     mouse_set(true);
-
     schedule_init(&shell_exec_info);
 
     while (true) {

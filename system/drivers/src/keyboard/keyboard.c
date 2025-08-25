@@ -48,11 +48,7 @@ void keyboard_handler(registers_t *regs) {
     }
 
     update_modifier_state(make_code, released);
-
-    if (released) {
-        return;
-    }
-
+    
     key_event_t event = create_key_event(scan_code, released);
     cb_write(&keyboard_buffer, &event);
 }
