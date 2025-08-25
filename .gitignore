@@ -34,3 +34,6 @@ compile_commands.json
 
 # Cache
 .cache
+
+# Doom code stuff (available from https://github.com/ozkl/doomgeneric)
+user/doom/doomgeneric
