@@ -3,7 +3,7 @@
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 
-#define MAX_DIRTY_RECTS 32
+#define MAX_DIRTY_RECTS 1024
 
 typedef struct {
     int x_min, y_min, x_max, y_max;
@@ -275,10 +275,17 @@ void gfx_blit(layer_id_t layer, uint32_t dst_x, uint32_t dst_y, uint32_t dst_w, 
         for (uint32_t dx = 0; dx < dst_w; dx++) {
             drow[dx] = srow[sx];
             acc_x += src_w;
-            while (acc_x >= dst_w) { acc_x -= dst_w; sx++; }
+
+            while (acc_x >= dst_w) { 
+                acc_x -= dst_w; sx++; 
+            }
         }
+
         acc_y += src_h;
-        while (acc_y >= dst_h) { acc_y -= dst_h; sy++; }
+        
+        while (acc_y >= dst_h) { 
+            acc_y -= dst_h; sy++;
+        }
     }
 
     gfx_mark_dirty_rect(layer, (int)dst_x, (int)dst_y, (int)dst_w, (int)dst_h);
@@ -359,10 +366,11 @@ void gfx_flush_dirty(void) {
 }
 
 void gfx_flush(void) {
-     uint32_t total = fb_info.pixels_per_row * fb_info.height;
+    uint32_t total = fb_info.pixels_per_row * fb_info.height;
 
     for (uint32_t i = 0; i < total; i++) {
         argb_t color = layers[LAYER_BACKGROUND][i];
+        color = blend_argb(color, layers[LAYER_APP][i]);
         color = blend_argb(color, layers[LAYER_UI][i]);
         color = blend_argb(color, layers[LAYER_OVERLAY][i]);
         color = blend_argb(color, layers[LAYER_CURSOR][i]);

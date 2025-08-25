@@ -1,6 +1,7 @@
 #include <stdint.h>
 
-#include <print/print.h>
+#include "print/print.h"
+#include "font/font.h"
 
 #define STDOUT 1
 #define STDERR 2

@@ -11,11 +11,14 @@ typedef uint32_t (*syscall_func_t)(uint32_t, uint32_t, uint32_t, uint32_t);
 static syscall_func_t syscall_table[SYSCALL_MAX];
 
 extern uint32_t sys_exit(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_open(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_close(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_write(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_read(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_forkexec(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_time(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_sleep(uint32_t, uint32_t, uint32_t, uint32_t);
+extern uint32_t sys_lseek(uint32_t, uint32_t, uint32_t, uint32_t);
 
 extern uint32_t sys_window_create(uint32_t, uint32_t, uint32_t, uint32_t);
 extern uint32_t sys_window_get_surface(uint32_t, uint32_t, uint32_t, uint32_t);
@@ -38,11 +41,14 @@ void syscall_init(void) {
     );
 
     register_syscall(SYS_EXIT,       sys_exit);
+    register_syscall(SYS_OPEN,       sys_open);
+    register_syscall(SYS_CLOSE,      sys_close);
     register_syscall(SYS_WRITE,      sys_write);
     register_syscall(SYS_READ,       sys_read);
     register_syscall(SYS_EXECVE,     sys_forkexec);
     register_syscall(SYS_TIME,       sys_time);
     register_syscall(SYS_NANOSLEEP,  sys_sleep);
+    register_syscall(SYS_LSEEK,      sys_lseek);
 
     register_syscall(SYS_WINDOW_CREATE,            sys_window_create);
     register_syscall(SYS_WINDOW_GET_SURFACE,       sys_window_get_surface);

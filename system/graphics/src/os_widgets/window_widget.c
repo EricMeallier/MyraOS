@@ -5,6 +5,7 @@
 #include "font/fonts/myra_font.h"
 #include "libc_kernel/string.h"
 #include "font/font.h"
+#include "schedule/schedule.h"
 
 typedef struct {
     char* title;
@@ -57,6 +58,9 @@ static void widget_os_window_event(widget_t* w, const ui_event_t* e) {
             ry >= d->close_y && ry < d->close_y + d->close_h) {
             window_destroy(d->handle);
             ui_destroy_widget(w);
+
+            schedule_current_proc->state = PROCESS_TERMINATED;
+            
             return;
         }
     }

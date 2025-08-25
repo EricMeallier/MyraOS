@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "bit_operations/bit_operations.h"
+#include "panic/panic.h"
 
 static uint8_t bitmap[BITMAP_SIZE];
 

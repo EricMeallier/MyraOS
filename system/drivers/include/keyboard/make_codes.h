@@ -1,5 +1,5 @@
-#ifndef SCAN_CODES_H
-#define SCAN_CODES_H
+#ifndef MAKE_CODES_H
+#define MAKE_CODES_H
 
 typedef enum make_code_t {
     KEY_NONE = 0x00,
@@ -89,6 +89,17 @@ typedef enum make_code_t {
     KEY_KP_DOT = 0x53,
     KEY_F11 = 0x57,
     KEY_F12 = 0x58,
+    KEY_HOME = 0x47,
+    KEY_UP = 0x48,
+    KEY_PAGE_UP = 0x49,
+    KEY_LEFT = 0x4B,
+    KEY_RIGHT = 0x4D,
+    KEY_END = 0x4F,
+    KEY_DOWN = 0x50,
+    KEY_PAGE_DOWN= 0x51,
+    KEY_INSERT = 0x52,
+    KEY_DELETE = 0x53,
+    KEY_KP_ENTER = 0x1C,
 } make_code_t;
 
-#endif  // SCAN_CODES_H
+#endif  // MAKE_CODES_H

@@ -8,7 +8,7 @@
 
 #define MAX_WINDOWS 32
 
-#define WIN_SURF_KBASE  0xE8000000u
+#define WIN_SURF_KBASE 0xE8000000u
 static uint32_t g_win_kva_next = WIN_SURF_KBASE;
 
 static window_t g_windows[MAX_WINDOWS];
@@ -32,7 +32,7 @@ void window_present(win_handle_t h) {
     gfx_blit(
         LAYER_APP,
         0, 40 + 28,
-        fb_info.width, fb_info.height - 158,
+        fb_info.width, fb_info.height - 68,
         src,
         win->logical_w, win->logical_h, win->pitch
     );
@@ -62,6 +62,7 @@ win_handle_t window_create(uint32_t owner_pid, uint32_t w, uint32_t h, uint32_t 
                 pmm_free_page((void*) frames[j]);
             }
             kfree(frames);
+            
             return 0;
         }
     }
@@ -91,6 +92,9 @@ win_handle_t window_create(uint32_t owner_pid, uint32_t w, uint32_t h, uint32_t 
 
     win->npages = npages;
     win->frames = frames;
+
+    win->has_widget = false;
+    win->title = NULL;
 
     return win->handle;
 }
@@ -129,6 +133,8 @@ void window_destroy(win_handle_t h) {
     win->surface_kptr = NULL;
     win->surface_uptr = NULL;
     win->used = false;
+    win->title = NULL;
+    win->has_widget = false;
 }
 
 static int alloc_slot(void) {

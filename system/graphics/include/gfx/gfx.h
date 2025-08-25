@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 typedef enum {
-    LAYER_BACKGROUND,
+    LAYER_BACKGROUND = 0,
     LAYER_APP,
     LAYER_UI,
     LAYER_OVERLAY,

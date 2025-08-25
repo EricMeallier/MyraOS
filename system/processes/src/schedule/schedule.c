@@ -25,6 +25,9 @@ void schedule_next(void) {
         if (next_proc->state != PROCESS_TERMINATED) {
             break;
         }
+        
+        kfree(next_proc);
+        next_proc = NULL;
     }
 
     if (schedule_current_proc && schedule_current_proc->state != PROCESS_TERMINATED) {
@@ -36,7 +39,9 @@ void schedule_next(void) {
 
     if (!next_proc) {
         if (!schedule_current_proc) {
-            kpanic("No process to run");
+            while (true) {
+                __asm__ volatile("sti; hlt");
+            }
         } else {
             next_proc = schedule_current_proc;
         }

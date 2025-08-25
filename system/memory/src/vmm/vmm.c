@@ -35,7 +35,6 @@ void vmm_map_page(uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags)
         }
         
         new_page_table = (page_table_t*)(0xFFC00000 + (dir_index * PAGE_SIZE));
-
         kmemset(new_page_table, 0, PAGE_SIZE);
 
         __asm__ volatile("invlpg (%0)" :: "r" (new_page_table));

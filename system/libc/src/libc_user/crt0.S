@@ -1,14 +1,16 @@
 .section .text
 .global _start
-.extern userlib_heap_init
 .extern main
 .extern _exit
+.extern _libc_reent_init
+.extern __libc_init_array
 
 _start:
-    # Make sure it matches the mapped pages in /system/processes/src/process/process.c
-    push $0x100000
-    push $0x500000
-    call userlib_heap_init
+    cld 
+
+    call _libc_reent_init
+    call __libc_init_array 
 
     call main
+    push %eax
     call _exit

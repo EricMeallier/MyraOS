@@ -48,7 +48,7 @@ void ui_render(void) {
 }
 
 void ui_destroy(void) {
-    for (size_t i = 0; i < ui_widget_count; i++) {
+    for (size_t i = 0; i < ui_widget_count;) {
         widget_t* w = ui_widgets[i];
         if (w->destroy) {
             gfx_fill_rect(LAYER_UI, w->x, w->y, w->width, w->height, 0x00000000);
@@ -56,14 +56,12 @@ void ui_destroy(void) {
             gfx_fill_rect(LAYER_APP, w->x, w->y, w->width, w->height, 0x00000000);
             gfx_mark_dirty_rect(LAYER_APP, w->x, w->y, w->width, w->height);
 
-            for (size_t j = i; j < ui_widget_count - 1; j++) {
-                ui_widgets[j] = ui_widgets[j + 1];
-            }
-
-            ui_widget_count--;
-
             for (size_t j = 0; j < ui_widget_count; j++) {
                 widget_t* cw = ui_widgets[j];
+                if (cw == w) {
+                    continue;
+                }
+
                 bool overlaps = !(cw->x + cw->width <= w->x || cw->x >= w->x + w->width || cw->y + cw->height <= w->y || cw->y >= w->y + w->height);
                 if (overlaps) {
                     ui_set_dirty(cw);
@@ -72,7 +70,14 @@ void ui_destroy(void) {
 
             kfree(w->data);
             kfree(w);
-            w = NULL;
+
+            for (size_t j = i; j < ui_widget_count - 1; j++) {
+                ui_widgets[j] = ui_widgets[j + 1];
+            }
+            ui_widget_count--;
+            ui_widgets[ui_widget_count] = NULL;
+        } else {
+            i++;
         }
     }
 }

@@ -27,6 +27,7 @@ _syscall_stub:
     mov eax, esp
     push eax
 
+    cld
     sti
     call syscall_handler
     add esp, 4

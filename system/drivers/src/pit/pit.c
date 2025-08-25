@@ -24,6 +24,8 @@ void pit_init(void) {
 }
 
 void pit_handler(registers_t* regs) {
+    (void) regs;
+
     tick_count++;
 
     outb(0x20, 0x20);
@@ -31,11 +33,6 @@ void pit_handler(registers_t* regs) {
     input_process();
 
     frame_render();
-
-    if ((regs->cs & RING_3) == RING_3) {
-        schedule_save_context(regs);
-        schedule_next();
-    }
 }
 
 uint32_t pit_ticks(void) {
