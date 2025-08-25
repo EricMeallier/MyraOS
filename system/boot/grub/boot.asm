@@ -9,7 +9,7 @@
 section .bss
 align 16
 stack_bottom:
-resb 8192 * 8
+resb 1024 * 128
 stack_top:
 
 section .boot.text
@@ -38,8 +38,8 @@ higher_half:
     extern multiboot_info_addr
     mov [multiboot_info_addr], ebx
     
-    extern kernel_main
-    call kernel_main
+    extern kernel_memory_setup
+    call kernel_memory_setup
 .hang:
     cli
 
