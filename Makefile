@@ -42,9 +42,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo "[GCC] $<"
 	@mkdir -p $(dir $@)
 	@if [ "$(DEBUG)" = "1" ]; then \
-		EXTRA_FLAGS="-g -O0"; \
+		EXTRA_FLAGS="-Og -g -ggdb3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline -fno-ipa-sra -fno-tree-sra -fvar-tracking-assignments"; \
 	else \
-		EXTRA_FLAGS="-O2"; \
+		EXTRA_FLAGS="-O2 -DNDEBUG"; \
 	fi; \
 	$(CC) $(CFLAGS) $$EXTRA_FLAGS -c $< -o $@
 
@@ -111,9 +111,9 @@ $(OBJ_DIR)/libc/src/libc_user/%.o: $(SRC_DIR)/libc/src/libc_user/%.c
 	@echo "[GCC] $<"
 	@mkdir -p $(dir $@)
 	@if [ "$(DEBUG)" = "1" ]; then \
-		EXTRA_FLAGS="-g -O0"; \
+		EXTRA_FLAGS="-Og -g -ggdb3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-inline -fno-ipa-sra -fno-tree-sra -fvar-tracking-assignments"; \
 	else \
-		EXTRA_FLAGS="-O2"; \
+		EXTRA_FLAGS="-O2 -DNDEBUG"; \
 	fi; \
 	$(CC) $(CFLAGS) $$EXTRA_FLAGS -c $< -o $@
 
