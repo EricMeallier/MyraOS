@@ -5,8 +5,6 @@
 #include "heap/heap.h"
 #include "panic/panic.h"
 
-#include "font/font.h"
-
 static circular_buffer_t processes_buffer;
 process_t* schedule_current_proc;
 
@@ -30,6 +28,7 @@ void schedule_next(void) {
     if (schedule_current_proc && schedule_current_proc->state != PROCESS_TERMINATED) {
         schedule_proc(schedule_current_proc);
     } else if (schedule_current_proc) {
+        kfree(schedule_current_proc->regs);
         kfree(schedule_current_proc);
         schedule_current_proc = NULL;
     }

@@ -5,8 +5,6 @@
 #include "heap/heap.h"
 #include "gfx/gfx.h"
 
-#include "font/font.h"
-
 static widget_t* ui_widgets[MAX_WIDGETS];
 static size_t ui_widget_count = 0;
 

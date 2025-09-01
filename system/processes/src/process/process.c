@@ -4,6 +4,7 @@
 #include "heap/heap.h"
 #include "libc_kernel/string.h"
 #include "pmm/pmm.h"
+#include "schedule/schedule.h"
 
 #define PROC_PAGE_DIR 0xDE000000 
 
@@ -95,7 +96,7 @@ process_t* proc_create(exec_info_t* exec_info) {
     copy_user_code(page_dir_virt, (uint32_t) page_dir_phys, exec_info);
 
     // Create and map the kernel stack
-    uint32_t kernel_stack_top = KERNEL_STACK_BASE - (current_pid * KERNEL_STACK_SIZE);
+    uint32_t kernel_stack_top = KERNEL_STACK_BASE - (current_pid % SCHEDULE_MAX_COUNT) * KERNEL_STACK_SIZE;
     map_proc_segments((uint32_t) page_dir_phys, kernel_stack_top);
 
     vmm_unmap_page((uint32_t) page_dir_virt);

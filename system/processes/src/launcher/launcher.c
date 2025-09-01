@@ -9,8 +9,6 @@
 #include "schedule/schedule.h"
 #include "process/process.h"
 
-#include "font/font.h"
-
 static const char* launch_pending = NULL;
 
 void launcher_request_launch(const char* path) {

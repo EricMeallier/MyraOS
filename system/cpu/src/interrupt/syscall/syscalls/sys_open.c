@@ -1,8 +1,6 @@
 #include "ext2/file_desc.h"
 #include "ext2/ext2.h"
 
-#include "font/font.h"
-
 uint32_t sys_open(uint32_t path_ptr, uint32_t flags, uint32_t _, uint32_t __) {
     (void) flags; (void) _; (void) __;
 
