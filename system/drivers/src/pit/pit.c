@@ -4,6 +4,7 @@
 #include "io/port_io.h"
 #include "interrupt/irq/irq.h"
 #include "input/input.h"
+#include "launcher/launcher.h"
 #include "schedule/schedule.h"
 
 #define PIT_CHANNEL_0_DATA_PORT 0x40
@@ -27,12 +28,12 @@ void pit_handler(registers_t* regs) {
     (void) regs;
 
     tick_count++;
-
-    outb(0x20, 0x20);
+    outb(0x20, 0x20); // send EOI before moving to the user code
 
     input_process();
-
     frame_render();
+
+    launcher_launch_pending();
 }
 
 uint32_t pit_ticks(void) {

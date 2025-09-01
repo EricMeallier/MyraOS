@@ -22,7 +22,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
     datetime_t dt = rtc_get_system_datetime();
     font_set_cursor((cursor_t){10, w->y + (w->height - myra_font.height) / 2});
     font_set_color(0xFFFFFFFF);
-    font_writef("%02d/%02d %02d:%02d", dt.day, dt.month, dt.hour, dt.minute);
+    font_writef("%02d/%02d %02d:%02d", LAYER_UI, dt.day, dt.month, dt.hour, dt.minute);
 
     // Draw "MyraOS" label
     const char* title = "MyraOS";
@@ -30,7 +30,7 @@ static void widget_os_top_bar_draw(widget_t* w) {
     int title_y = w->y + (w->height - myra_font.height) / 2;
 
     font_set_cursor((cursor_t){title_x, title_y});
-    font_write(title);
+    font_write(title, LAYER_UI);
 
     font_restore_state(font_state);
 }

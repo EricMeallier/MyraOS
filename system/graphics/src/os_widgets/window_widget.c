@@ -33,7 +33,7 @@ static void widget_os_window_draw(widget_t* w) {
 
     font_set_cursor((cursor_t){title_x, title_y});
     font_set_color(0xFF111111);
-    font_write(d->title);
+    font_write(d->title, LAYER_UI);
 
     uint32_t bx = w->x + d->close_x;
     uint32_t by = w->y + d->close_y;
@@ -60,6 +60,7 @@ static void widget_os_window_event(widget_t* w, const ui_event_t* e) {
             ui_destroy_widget(w);
 
             schedule_current_proc->state = PROCESS_TERMINATED;
+            schedule_next();
             
             return;
         }
@@ -68,7 +69,7 @@ static void widget_os_window_event(widget_t* w, const ui_event_t* e) {
 
 widget_t* widget_os_window_create(char* title, win_handle_t handle, uint32_t x, uint32_t y, uint32_t app_w, uint32_t app_h) {
     window_widget_data_t* d = kmalloc(sizeof(window_widget_data_t));
-    d->title = title;
+    d->title = kstrdup(title);
     d->handle = handle;
     d->app_w = app_w;
     d->app_h = app_h;
