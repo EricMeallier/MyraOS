@@ -5,18 +5,15 @@
 #include "heap/heap.h"
 #include "panic/panic.h"
 
+#include "font/font.h"
+
 static circular_buffer_t processes_buffer;
 process_t* schedule_current_proc;
 
 extern void _switch_to_proc_space(uint32_t entry, uint32_t user_stack, uint32_t user_stack_top, uint32_t page_dir_phys);
 
-void schedule_init(exec_info_t* initial_proc) {
+void schedule_init(void) {
     cb_init(&processes_buffer, sizeof(process_t*), SCHEDULE_MAX_COUNT);
-
-    process_t* proc = proc_create(initial_proc);
-    schedule_proc(proc);
-
-    schedule_next();
 }
 
 void schedule_next(void) {
@@ -39,9 +36,7 @@ void schedule_next(void) {
 
     if (!next_proc) {
         if (!schedule_current_proc) {
-            while (true) {
-                __asm__ volatile("sti; hlt");
-            }
+            return;
         } else {
             next_proc = schedule_current_proc;
         }
