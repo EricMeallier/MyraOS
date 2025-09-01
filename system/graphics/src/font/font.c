@@ -19,7 +19,7 @@ static enum {
     FONT_ANSI_CSI
 } font_ansi_state = FONT_ANSI_NONE;
 
-static bool font_handle_escape_char(char c);
+static bool font_handle_escape_char(layer_id_t layer, char c);
 static void font_apply_ansi_color(const char* code);
 
 static char font_ansi_buf[16];
@@ -110,7 +110,7 @@ void font_set_scrolling(bool enabled) {
     font_state.scrolling_enabled = enabled;
 }
 
-void font_scroll(uint32_t lines) {
+void font_scroll(layer_id_t layer, uint32_t lines) {
     if (!font_state.scrolling_enabled) {
         return;
     }
@@ -118,7 +118,7 @@ void font_scroll(uint32_t lines) {
     uint32_t dy = lines * font_state.font->height;
     for (uint32_t y = font_state.box_limit.y; y < font_state.box_limit.y + font_state.box_limit.height - dy; y++) {
         for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
-            gfx_draw_pixel(LAYER_UI, x, y, gfx_get_pixel(x, y + dy));
+            gfx_draw_pixel(layer, x, y, gfx_get_pixel(x, y + dy));
         }
     }
 
@@ -126,12 +126,12 @@ void font_scroll(uint32_t lines) {
     for (uint32_t y = font_state.box_limit.y + font_state.box_limit.height - dy;
          y < font_state.box_limit.y + font_state.box_limit.height; y++) {
         for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
-            gfx_draw_pixel(LAYER_UI, x, y, font_state.background_color);
+            gfx_draw_pixel(layer, x, y, font_state.background_color);
         }
     }
 }
 
-void font_write_char(char c) {
+void font_write_char(char c, layer_id_t layer) {
     // Handle ANSI escape sequences
     if (font_ansi_state != FONT_ANSI_NONE) {
         if (font_ansi_state == FONT_ANSI_ESC && c == '[') {
@@ -151,7 +151,7 @@ void font_write_char(char c) {
                 if (c == 'm') {
                     font_apply_ansi_color(font_ansi_buf);
                 } else if (c == 'J') {
-                    font_clear(font_state.background_color);
+                    font_clear(layer, font_state.background_color);
                 }
                 font_ansi_state = FONT_ANSI_NONE;
                 return;
@@ -167,7 +167,7 @@ void font_write_char(char c) {
         return;
     }
 
-    if (font_handle_escape_char(c)) {
+    if (font_handle_escape_char(layer, c)) {
         return;
     }
 
@@ -179,7 +179,7 @@ void font_write_char(char c) {
         font_state.cursor.y += char_height;
         
         if (font_state.cursor.y + char_height > font_state.box_limit.y + font_state.box_limit.height) {
-            font_scroll(1);
+            font_scroll(layer, 1);
             font_state.cursor.y -= char_height;
         }
     }
@@ -197,7 +197,7 @@ void font_write_char(char c) {
             uint32_t byte_index = y * bytes_per_row + (x / 8);
             uint8_t bit_mask = 0x80 >> (x % 8);
             if (char_bitmap[byte_index] & bit_mask) {
-                gfx_draw_pixel(LAYER_UI, font_state.cursor.x + x, font_state.cursor.y + y, font_state.color);
+                gfx_draw_pixel(layer, font_state.cursor.x + x, font_state.cursor.y + y, font_state.color);
             }
         }
     }
@@ -205,33 +205,33 @@ void font_write_char(char c) {
     font_state.cursor.x += char_width;
 }
 
-void font_write_char_at(char c, uint32_t x, uint32_t y) {
+void font_write_char_at(layer_id_t layer, char c, uint32_t x, uint32_t y) {
     cursor_t prev = font_state.cursor;
 
     font_set_cursor((cursor_t){x, y});
-    font_write_char(c);
+    font_write_char(layer, c);
 
     font_set_cursor(prev);
 }
 
-void font_write(const char* str) {
+void font_write(const char* str, layer_id_t layer) {
     while (*str) {
         char c = *str++;
-        font_write_char(c);
+        font_write_char(c, layer);
     }
 }
 
-void font_writef(const char* fmt, ...) {
+void font_writef(const char* fmt, layer_id_t layer, ...) {
     va_list args;
-    va_start(args, fmt);
-    font_write_format(fmt, args);
+    va_start(args, layer);
+    font_write_format(fmt, layer, args);
     va_end(args);
 }
 
-void font_write_format(const char* fmt, va_list ap) {
+void font_write_format(const char* fmt, layer_id_t layer, va_list ap) {
     while (*fmt) {
         if (*fmt != '%') {
-            font_write_char(*fmt++);
+            font_write_char(*fmt++, layer);
             continue;
         }
 
@@ -259,10 +259,10 @@ void font_write_format(const char* fmt, va_list ap) {
 
                 int len = kstrlen(buf);
                 for (int i = 0; i < pad_width - len; i++) {
-                    font_write_char(zero_pad ? '0' : ' ');
+                    font_write_char( zero_pad ? '0' : ' ', layer);
                 }
 
-                font_write(buf);
+                font_write(buf, layer);
                 break;
             }
             case 'x': {
@@ -271,10 +271,10 @@ void font_write_format(const char* fmt, va_list ap) {
 
                 int len = kstrlen(buf);
                 for (int i = 0; i < pad_width - len; i++) {
-                    font_write_char(zero_pad ? '0' : ' ');
+                    font_write_char(zero_pad ? '0' : ' ', layer);
                 }
 
-                font_write(buf);
+                font_write(buf, layer);
                 break;
             }
             case 'u': {
@@ -283,30 +283,30 @@ void font_write_format(const char* fmt, va_list ap) {
 
                 int len = kstrlen(buf);
                 for (int i = 0; i < pad_width - len; i++) {
-                    font_write_char(zero_pad ? '0' : ' ');
+                    font_write_char(zero_pad ? '0' : ' ', layer);
                 }
 
-                font_write(buf);
+                font_write(buf, layer);
                 break;
 
             }
             case 's': {
                 const char* str = va_arg(ap, const char*);
-                font_write(str);
+                font_write(str, layer);
                 break;
             }
             case 'c': {
                 char c = (char)va_arg(ap, int);
-                font_write_char(c);
+                font_write_char(c, layer);
                 break;
             }
             case '%': {
-                font_write_char('%');
+                font_write_char('%', layer);
                 break;
             }
             default: {
-                font_write_char('%');
-                font_write_char(*fmt);
+                font_write_char('%', layer);
+                font_write_char(*fmt, layer);
 
                 break;
             }
@@ -316,22 +316,22 @@ void font_write_format(const char* fmt, va_list ap) {
     }
 }
 
-void font_clear(argb_t color) {
+void font_clear(layer_id_t layer, argb_t color) {
     for (uint32_t y = font_state.box_limit.y; y < font_state.box_limit.y + font_state.box_limit.height; y++) {
         for (uint32_t x = font_state.box_limit.x; x < font_state.box_limit.x + font_state.box_limit.width; x++) {
-            gfx_draw_pixel(LAYER_UI, x, y, color);
+            gfx_draw_pixel(x, y, color, layer);
         }
     }
 }
 
-static bool font_handle_escape_char(char c) {
+static bool font_handle_escape_char(layer_id_t layer, char c) {
     switch (c) {
         case '\n': {
             font_state.cursor.x = font_state.box_limit.x;
             font_state.cursor.y += font_state.font->height;
 
             if (font_state.cursor.y + font_state.font->height > font_state.box_limit.y + font_state.box_limit.height) {
-                font_scroll(1);
+                font_scroll(layer, 1);
                 font_state.cursor.y -= font_state.font->height;
             }
 
@@ -342,7 +342,7 @@ static bool font_handle_escape_char(char c) {
             uint32_t next_tab = (font_state.cursor.x + tab_size) & ~(tab_size - 1);
             
             while (font_state.cursor.x < next_tab) {
-                font_write_char(' ');
+                font_write_char(' ', layer);
             }
 
             return true;

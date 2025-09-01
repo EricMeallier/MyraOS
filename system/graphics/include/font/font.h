@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "fb/fb.h"
+#include "gfx/gfx.h"
 
 typedef struct font_t {
     uint8_t width;
@@ -54,13 +55,13 @@ void font_set_background_color(argb_t color) ;
 argb_t font_get_background_color(void);
 
 void font_set_scrolling(bool enabled);
-void font_scroll(uint32_t lines);
+void font_scroll(layer_id_t layer, uint32_t lines);
 
-void font_write_char(char c);
-void font_write_char_at(char c, uint32_t x, uint32_t y);
-void font_write(const char* str);
-void font_writef(const char* fmt, ...);
-void font_write_format(const char* fmt, va_list ap); 
-void font_clear(argb_t color);
+void font_write_char(char c, layer_id_t layer);
+void font_write_char_at(layer_id_t layer, char c, uint32_t x, uint32_t y);
+void font_write(const char* str, layer_id_t layer);
+void font_writef(const char* fmt, layer_id_t layer, ...);
+void font_write_format(const char* fmt, layer_id_t layer, va_list ap); 
+void font_clear(layer_id_t layer, argb_t color);
 
 #endif // FONT_H

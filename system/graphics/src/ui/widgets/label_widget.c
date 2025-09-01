@@ -18,7 +18,7 @@ static void widget_label_draw(widget_t* w) {
     font_set_cursor((cursor_t) {w->x, w->y});
     font_set_font(label_data->font);
     
-    font_write(label_data->text);
+    font_write(label_data->text, LAYER_UI);
 
     font_restore_state(font_state);
 }

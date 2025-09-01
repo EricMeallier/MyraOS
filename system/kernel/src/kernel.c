@@ -66,26 +66,11 @@ void kernel_main(void) {
         klog_error("FS mount failed");
     }
 
-    size_t shell_elf_size = 0;
-    bool succeeded = true;
-    void* shell_elf_data = (void*) ext2_read_file(root_fs, "/programs/doom.elf", &shell_elf_size, &succeeded);
-    if (!succeeded) {
-        klog_error("Loading demo ELF failed");
-    }
-
-    elf_load_info_t shell_load_info;
-    if (!elf_parse(shell_elf_data, &shell_load_info)) {
-        klog_error("ELF parsing failed");
-    }
-
-    exec_info_t shell_exec_info;
-    exec_parse_info_elf(&shell_load_info, &shell_exec_info);
-
     parse_multiboot_info(multiboot_info_addr);
     frame_set_screen(&screen_desktop);
 
     mouse_set(true);
-    schedule_init(&shell_exec_info);
+    schedule_init();
 
     while (true) {
         __asm__ volatile("hlt");
