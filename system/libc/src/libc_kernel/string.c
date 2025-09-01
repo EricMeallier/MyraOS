@@ -1,5 +1,7 @@
 #include "libc_kernel/string.h"
 
+#include "heap/heap.h"
+
 void* kmemcpy(void* dest, const void* src, size_t size) {
     char *csrc = (char*)src; 
     char *cdest = (char*)dest; 
@@ -42,6 +44,25 @@ char* kstrncpy(char* dest, const char* src, size_t n) {
     }
     
     return dest;
+}
+
+char* kstrdup(const char* src) {
+    if (src == NULL) {
+        return NULL;
+    }
+
+    size_t len = kstrlen(src);
+    char* dup = kmalloc(len + 1);
+    if (!dup) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        dup[i] = src[i];
+    }
+    dup[len] = '\0';
+
+    return dup;
 }
 
 void* kmemset(void* dest, int ch, size_t len) {

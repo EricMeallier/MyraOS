@@ -16,7 +16,7 @@ void kpanic(const char* message) {
     gfx_clear(LAYER_BACKGROUND, 0xFFFF6961);
 
     font_restore_default();
-    font_writef("Kernel panic! Please provide this error and reset: %s", message);
+    font_writef("Kernel panic! Please provide this error and reset: %s", LAYER_UI, message);
 
     gfx_flush();
 
