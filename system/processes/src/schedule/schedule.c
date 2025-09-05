@@ -27,8 +27,7 @@ void schedule_next(void) {
             schedule_current_proc = NULL;
         }
 
-        kfree(next_proc->regs);
-        kfree(next_proc);
+        proc_destroy(next_proc);
 
         next_proc = NULL;
     }
@@ -36,8 +35,7 @@ void schedule_next(void) {
     if (schedule_current_proc && schedule_current_proc->state != PROCESS_TERMINATED) {
         schedule_proc(schedule_current_proc);
     } else if (schedule_current_proc) {
-        kfree(schedule_current_proc->regs);
-        kfree(schedule_current_proc);
+        proc_destroy(schedule_current_proc);
 
         schedule_current_proc = NULL;
     }

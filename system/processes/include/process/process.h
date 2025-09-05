@@ -42,4 +42,6 @@ typedef struct process_t {
 
 process_t* proc_create(exec_info_t* exec_info);
 
+void proc_destroy(process_t* proc);
+
 #endif // PROCESS_H

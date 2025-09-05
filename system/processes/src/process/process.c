@@ -125,3 +125,39 @@ process_t* proc_create(exec_info_t* exec_info) {
 
     return process;
 }
+
+void proc_destroy(process_t* process) {
+    if (!process) {
+        return;
+    }
+
+    uint32_t saved_cr3;
+    __asm__ volatile("mov %%cr3, %0" : "=r"(saved_cr3));
+    __asm__ volatile("cli");
+    __asm__ volatile("mov %0, %%cr3" :: "r"(process->page_directory));
+
+    for (size_t i = 0; i < KERNEL_ENTRY_START; i++) {
+        if (current_page_directory_virt->entries[i] & PAGE_PRESENT) {
+            page_table_t* pt = (page_table_t*)(RECURSIVE_PAGE_TABLE_BASE + i * PAGE_SIZE);
+            for (size_t j = 0; j < PAGE_ENTRIES; j++) {
+                if (pt->entries[j] & PAGE_PRESENT) {
+                    uint32_t phys = pt->entries[j] & ~0xFFF;
+                    pmm_free_page((void*) phys);
+                }
+            }
+
+            uint32_t pt_phys = current_page_directory_virt->entries[i] & ~0xFFF;
+            pmm_free_page((void*) pt_phys);
+
+            current_page_directory_virt->entries[i] = 0;
+        }
+    }
+
+    __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
+    __asm__ volatile("sti");
+
+    pmm_free_page((void*) process->page_directory);
+    
+    kfree(process->regs);
+    kfree(process);
+}
