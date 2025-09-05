@@ -32,6 +32,10 @@ void pit_handler(registers_t* regs) {
 
     input_process();
     frame_render();
+    
+    if (schedule_current_proc && schedule_current_proc->state == PROCESS_TERMINATED) {
+        schedule_next();
+    }
 
     launcher_launch_pending();
 }

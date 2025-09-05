@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "block_device/pata.h"
 #include "ext2/ext2.h"
@@ -29,6 +30,7 @@ extern void parse_multiboot_info(uint32_t addr);
 
 void kernel_main(void);
 void kernel_memory_setup(void);
+void kernel_idle(void);
 
 void kernel_memory_setup(void) {
     pmm_init();
@@ -72,7 +74,13 @@ void kernel_main(void) {
     mouse_set(true);
     schedule_init();
 
+    kernel_idle();
+}
+
+void kernel_idle(void) {
     while (true) {
-        __asm__ volatile("hlt");
+        __asm__ volatile("sti; hlt;");
     }
+
+    __builtin_unreachable();
 }

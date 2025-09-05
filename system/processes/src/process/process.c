@@ -6,13 +6,13 @@
 #include "pmm/pmm.h"
 #include "schedule/schedule.h"
 
+#include "font/font.h"
+
 #define PROC_PAGE_DIR 0xDE000000 
 
 static size_t current_pid = 0;
 
-static void copy_user_code(page_directory_t* page_dir_virt, uint32_t page_dir_phys, exec_info_t* exec_info) {
-    page_dir_virt->entries[PAGE_ENTRIES - 1] = (uint32_t) page_dir_phys | PAGE_PRESENT | PAGE_WRITE;
-
+static void copy_user_code(uint32_t page_dir_phys, exec_info_t* exec_info) {
     uint32_t saved_cr3;
     __asm__ volatile("mov %%cr3, %0" : "=r"(saved_cr3));
     __asm__ volatile("cli");
@@ -69,9 +69,12 @@ static void map_proc_segments(uint32_t page_dir_phys, uint32_t kernel_stack_top)
         vmm_map_page(stack_page_virt, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     }
 
+    __asm__ volatile ("nop"); // REMOTE LATER: for debug
+
     for (uint32_t addr = PROCESS_HEAP_START; addr < PROCESS_HEAP_START + PROCESS_HEAP_SIZE; addr += PAGE_SIZE) {
         uint32_t frame = (uint32_t) pmm_alloc_page();
         vmm_map_page(addr, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+        kmemset((void*) addr, 0, PAGE_SIZE);
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
@@ -89,11 +92,12 @@ process_t* proc_create(exec_info_t* exec_info) {
     
     vmm_map_page((uint32_t) page_dir_virt, (uint32_t) page_dir_phys, PAGE_PRESENT | PAGE_WRITE);
     kmemset(page_dir_virt, 0, PAGE_SIZE);
-    page_dir_virt->entries[PAGE_ENTRIES - 1] = (uint32_t) page_dir_phys | PAGE_PRESENT | PAGE_WRITE;
 
     // Copy the kernel to the page dir of the proc
-    kmemcpy(&page_dir_virt->entries[KERNEL_ENTRY_START], &current_page_directory->entries[KERNEL_ENTRY_START], (PAGE_ENTRIES - KERNEL_ENTRY_START) * sizeof(uint32_t));
-    copy_user_code(page_dir_virt, (uint32_t) page_dir_phys, exec_info);
+    kmemcpy(&page_dir_virt->entries[KERNEL_ENTRY_START], &current_page_directory_virt->entries[KERNEL_ENTRY_START], (PAGE_ENTRIES - KERNEL_ENTRY_START - 1) * sizeof(uint32_t));
+    page_dir_virt->entries[PAGE_ENTRIES - 1] = (uint32_t) page_dir_phys | PAGE_PRESENT | PAGE_WRITE;
+
+    copy_user_code((uint32_t) page_dir_phys, exec_info);
 
     // Create and map the kernel stack
     uint32_t kernel_stack_top = KERNEL_STACK_BASE - (current_pid % SCHEDULE_MAX_COUNT) * KERNEL_STACK_SIZE;

@@ -13,11 +13,9 @@ void isr_handler(const registers_t* regs) {
         : "Unknown Exception";
 
     if ((regs->cs & RING_3) == RING_3) {
-        schedule_current_proc->state = PROCESS_TERMINATED;
-
         ulog_errorf_nb("Process %d crashed with error: %s", schedule_current_proc->pid, message);
         
-        schedule_next();
+        schedule_close_current_proc();
 
         return;
     }

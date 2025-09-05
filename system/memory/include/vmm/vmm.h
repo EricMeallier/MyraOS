@@ -5,11 +5,14 @@
 
 #include "constants/mem_constants.h"
 
+#define RECURSIVE_PAGE_DIRECTORY_BASE 0xFFFFF000
 #define RECURSIVE_PAGE_TABLE_BASE 0xFFC00000
 #define KERNEL_ENTRY_START 768
 
-#define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & 0xFFFFF000) | ((flags) & 0xFFF))
-#define VIRT_TO_PHYS(addr) (((uint32_t*)(RECURSIVE_PAGE_TABLE_BASE + (((addr) >> 22) << 12))[(((addr) >> 12) & 0x3FF)] & ~0xFFF) | ((addr) & 0xFFF))
+#define MAKE_ENTRY(ptr, flags) (((uint32_t)(ptr) & RECURSIVE_PAGE_DIRECTORY_BASE) | ((flags) & 0xFFF))
+#define VIRT_TO_PHYS(addr) \
+    ( ((*(volatile uint32_t*)(RECURSIVE_PAGE_TABLE_BASE + (((addr) >> 22) << 12) + (((addr) >> 12) & 0x3FF) * 4)) & ~0xFFF)) \
+      | ((addr) & 0xFFF) )
 
 // types
 typedef uint32_t page_table_entry_t;
@@ -39,8 +42,8 @@ typedef enum page_flags_t {
 } page_flags_t;
 
 extern uint32_t* page_directory;
-
-extern page_directory_t* current_page_directory;
+extern uint32_t* kernel_page_directory_phys;
+extern page_directory_t* current_page_directory_virt;
 
 // Only sets recursive map, sets global ptr, etc.
 void vmm_init(void);        

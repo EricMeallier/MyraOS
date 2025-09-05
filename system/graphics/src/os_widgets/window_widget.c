@@ -59,10 +59,7 @@ static void widget_os_window_event(widget_t* w, const ui_event_t* e) {
             window_destroy(d->handle);
             ui_destroy_widget(w);
 
-            if (schedule_current_proc) {
-                schedule_current_proc->state = PROCESS_TERMINATED;
-                schedule_next();
-            }
+            schedule_close_current_proc();
             
             return;
         }

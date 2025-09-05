@@ -3,7 +3,9 @@
 #include "circular_buffer/circular_buffer.h"
 #include "gdt/gdt.h"
 #include "heap/heap.h"
-#include "panic/panic.h"
+#include "pmm/pmm.h"
+#include "vmm/vmm.h"
+#include "stack/stack.h"
 
 static circular_buffer_t processes_buffer;
 process_t* schedule_current_proc;
@@ -20,8 +22,14 @@ void schedule_next(void) {
         if (next_proc->state != PROCESS_TERMINATED) {
             break;
         }
-        
+
+        if (next_proc == schedule_current_proc) {
+            schedule_current_proc = NULL;
+        }
+
+        kfree(next_proc->regs);
         kfree(next_proc);
+
         next_proc = NULL;
     }
 
@@ -30,12 +38,20 @@ void schedule_next(void) {
     } else if (schedule_current_proc) {
         kfree(schedule_current_proc->regs);
         kfree(schedule_current_proc);
+
         schedule_current_proc = NULL;
     }
 
     if (!next_proc) {
         if (!schedule_current_proc) {
-            return;
+            __asm__ volatile("cli");
+            
+            tss_set_kernel_stack(kstack_top);
+            __asm__ volatile("mov %0, %%cr3" :: "r"(kernel_page_directory_phys));
+
+            while (true) {
+                __asm__ volatile ("sti; hlt;");
+            }
         } else {
             next_proc = schedule_current_proc;
         }
@@ -45,7 +61,6 @@ void schedule_next(void) {
     schedule_current_proc = next_proc;
 
     tss_set_kernel_stack(next_proc->kernel_stack);
-    
     _switch_to_proc_space(next_proc->regs->eip, next_proc->regs->esp, next_proc->regs->ebp, next_proc->page_directory);
 }
 
@@ -74,6 +89,18 @@ void schedule_save_context(registers_t* regs) {
 }
 
 bool schedule_proc(process_t* proc) {
+    if (cb_peek(&processes_buffer) != NULL) {
+        return false;
+    }
+
     proc->state = PROCESS_READY;
     return cb_write(&processes_buffer, &proc);
+}
+
+void schedule_close_current_proc(void) {
+    if (!schedule_current_proc) {
+        return;
+    }
+
+    schedule_current_proc->state = PROCESS_TERMINATED;
 }

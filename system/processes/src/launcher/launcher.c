@@ -5,25 +5,30 @@
 
 #include "exec/exec.h"
 #include "ext2/ext2.h"
+#include "heap/heap.h"
 #include "libc_kernel/string.h"
 #include "schedule/schedule.h"
 #include "process/process.h"
 
-static const char* launch_pending = NULL;
+static bool should_launch = false;
+static char* launch_pending = NULL;
 
 void launcher_request_launch(const char* path) {
-    launch_pending = kstrdup(path);
+    if (launch_pending) {
+        kfree((void*)launch_pending);
+    }
 
+    launch_pending = kstrdup(path);
+    should_launch = true;
 }
 
 void launcher_launch_pending(void) {
-    const char* path = kstrdup(launch_pending);
-    if (path == NULL) {
+    if (!should_launch) {
         return;
     }
 
-    launch_pending = NULL;
-    launcher_launch(path);
+    should_launch = false;
+    launcher_launch(launch_pending);
 }
 
 bool launcher_launch(const char* path) {
