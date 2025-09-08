@@ -42,15 +42,23 @@ void* kmalloc(size_t size) {
     }
 
     if (curr_block == NULL) {
-        uint32_t* curr_block_phys = (uint32_t*) pmm_alloc_page();
-        if (curr_block_phys == NULL) {
-            return NULL;
-        }
+        size_t total_needed = size + sizeof(heap_block_t);
+        size_t pages_needed = (total_needed + PAGE_SIZE - 1) / PAGE_SIZE;
         
         heap_block_t* new_block = (heap_block_t*)((uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t));
-        vmm_map_page((uintptr_t)new_block, (uint32_t)curr_block_phys, PAGE_PRESENT | PAGE_WRITE);
+        
+        for (size_t i = 0; i < pages_needed; i++) {
+            uintptr_t phys = (uintptr_t) pmm_alloc_page();
+            if (phys == 0) {
+                for (size_t j = 0; j < i; j++) {
+                    vmm_unmap_page((uintptr_t)new_block + j * PAGE_SIZE);
+                }
+                return NULL;
+            }
+            vmm_map_page((uintptr_t)new_block + i * PAGE_SIZE, phys, PAGE_PRESENT | PAGE_WRITE);
+        }
 
-        new_block->size = PAGE_SIZE - sizeof(heap_block_t);
+        new_block->size = (pages_needed * PAGE_SIZE) - sizeof(heap_block_t);
         new_block->free = true;
         new_block->next = NULL;
 
