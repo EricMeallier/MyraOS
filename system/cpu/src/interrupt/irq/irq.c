@@ -1,9 +1,12 @@
 #include "interrupt/irq/irq.h"
 
+#include <stddef.h>
+
 #include "interrupt/idt/idt.h"
 #include "io/port_io.h"
+#include "schedule/schedule.h"
 
-#include <stddef.h>
+extern void kernel_idle(void);
 
 irq_call_t irq_routines[IRQ_SIZE] = {
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -32,6 +35,10 @@ void irq_handler(registers_t* regs) {
         outb(0xA0, 0x20); // EOI to slave PIC
     }
     outb(0x20, 0x20);     // EOI to master PIC
+
+    if (schedule_current_proc && schedule_current_proc->state == PROCESS_TERMINATED) {
+        regs->eip = (uint32_t) kernel_idle;
+    }
 }
 
 void irq_remap() {

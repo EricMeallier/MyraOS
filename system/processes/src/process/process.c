@@ -69,7 +69,6 @@ static void map_proc_segments(uint32_t page_dir_phys, uint32_t kernel_stack_top)
     for (uint32_t addr = PROCESS_HEAP_START; addr < PROCESS_HEAP_START + PROCESS_HEAP_SIZE; addr += PAGE_SIZE) {
         uint32_t frame = (uint32_t) pmm_alloc_page();
         vmm_map_page(addr, frame, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
-        kmemset((void*) addr, 0, PAGE_SIZE);
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
