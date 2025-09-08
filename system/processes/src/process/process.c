@@ -15,7 +15,6 @@ static size_t current_pid = 0;
 static void copy_user_code(uint32_t page_dir_phys, exec_info_t* exec_info) {
     uint32_t saved_cr3;
     __asm__ volatile("mov %%cr3, %0" : "=r"(saved_cr3));
-    __asm__ volatile("cli");
     __asm__ volatile("mov %0, %%cr3" :: "r"(page_dir_phys));
 
     for (size_t i = 0; i < exec_info->segment_count; i++) {
@@ -46,13 +45,11 @@ static void copy_user_code(uint32_t page_dir_phys, exec_info_t* exec_info) {
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
-    __asm__ volatile("sti");
 }
 
 static void map_proc_segments(uint32_t page_dir_phys, uint32_t kernel_stack_top) {
     uint32_t saved_cr3;
     __asm__ volatile("mov %%cr3, %0" : "=r"(saved_cr3));
-    __asm__ volatile("cli");
     __asm__ volatile("mov %0, %%cr3" :: "r"(page_dir_phys));
 
     for (size_t i = 0; i < (KERNEL_STACK_SIZE / PAGE_SIZE); i++) {
@@ -76,7 +73,6 @@ static void map_proc_segments(uint32_t page_dir_phys, uint32_t kernel_stack_top)
     }
 
     __asm__ volatile("mov %0, %%cr3" :: "r"(saved_cr3));
-    __asm__ volatile("sti");
 }
 
 process_t* proc_create(exec_info_t* exec_info) {
