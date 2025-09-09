@@ -6,6 +6,7 @@
 #include "image/image_loader.h"
 #include "libc_kernel/string.h"
 #include "launcher/launcher.h"
+#include "schedule/schedule.h"
 
 #define ICON_W 64
 #define ICON_H 64
@@ -52,7 +53,7 @@ static void icon_event(widget_t* w, const ui_event_t* ev) {
     if (ev->type == UI_EVENT_CLICK) {
         uint32_t gx = w->x + ev->click.rel_x;
         uint32_t gy = w->y + ev->click.rel_y;
-        if (inside(w, gx, gy)) {
+        if (inside(w, gx, gy) && !schedule_current_proc) {
             icon_widget_data_t* d = (icon_widget_data_t*)w->data;
             launcher_request_launch(d->exec_path);
         }
