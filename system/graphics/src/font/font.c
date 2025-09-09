@@ -267,7 +267,7 @@ void font_write_format(const char* fmt, layer_id_t layer, va_list ap) {
             }
             case 'x': {
                 uint32_t val = va_arg(ap, uint32_t);
-                kitoa(val, buf, 16);
+                kutoa(val, buf, 16);
 
                 int len = kstrlen(buf);
                 for (int i = 0; i < pad_width - len; i++) {
@@ -279,7 +279,7 @@ void font_write_format(const char* fmt, layer_id_t layer, va_list ap) {
             }
             case 'u': {
                 uint32_t val = va_arg(ap, uint32_t);
-                utoa(val, buf, 10);
+                kutoa(val, buf, 10);
 
                 int len = kstrlen(buf);
                 for (int i = 0; i < pad_width - len; i++) {

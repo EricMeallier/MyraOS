@@ -146,7 +146,7 @@ void vga_write_format(const char *fmt, const va_list argp) {
             case 'x': {
                 uint32_t val = va_arg(argp, uint32_t);
 
-                kitoa(val, buf, 16);
+                kutoa(val, buf, 16);
                 int len = kstrlen(buf);
 
                 for (int i = 0; i < pad_width - len; i++) {
@@ -158,7 +158,7 @@ void vga_write_format(const char *fmt, const va_list argp) {
             }
             case 'u': {
                 uint32_t val = va_arg(argp, uint32_t);
-                utoa(val, buf, 10);
+                kutoa(val, buf, 10);
                 int len = kstrlen(buf);
 
                 for (int i = 0; i < pad_width - len; i++) {

@@ -67,7 +67,7 @@ char* kitoa(int value, char* str, int base) {
     return str;
 }
 
-char* utoa(uint32_t value, char* str, int base) {
+char* kutoa(uint32_t value, char* str, int base) {
     char* ptr = str;
     char* ptr1 = str;
     char tmp;
