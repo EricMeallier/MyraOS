@@ -42,20 +42,28 @@ void* kmalloc(size_t size) {
     }
 
     if (curr_block == NULL) {
+        uintptr_t natural_addr = (uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t);
+        
+        uintptr_t aligned_addr = (natural_addr + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+        heap_block_t* new_block = (heap_block_t*)aligned_addr;
+        
         size_t total_needed = size + sizeof(heap_block_t);
         size_t pages_needed = (total_needed + PAGE_SIZE - 1) / PAGE_SIZE;
-        
-        heap_block_t* new_block = (heap_block_t*)((uintptr_t)heap_end + heap_end->size + sizeof(heap_block_t));
         
         for (size_t i = 0; i < pages_needed; i++) {
             uintptr_t phys = (uintptr_t) pmm_alloc_page();
             if (phys == 0) {
                 for (size_t j = 0; j < i; j++) {
-                    vmm_unmap_page((uintptr_t)new_block + j * PAGE_SIZE);
+                    vmm_unmap_page(aligned_addr + j * PAGE_SIZE);
                 }
                 return NULL;
             }
-            vmm_map_page((uintptr_t)new_block + i * PAGE_SIZE, phys, PAGE_PRESENT | PAGE_WRITE);
+            vmm_map_page(aligned_addr + i * PAGE_SIZE, phys, PAGE_PRESENT | PAGE_WRITE);
+        }
+
+        uintptr_t gap_size = aligned_addr - natural_addr;
+        if (gap_size > 0) {
+            heap_end->size += gap_size;
         }
 
         new_block->size = (pages_needed * PAGE_SIZE) - sizeof(heap_block_t);
@@ -115,7 +123,6 @@ void* krealloc(void* ptr, size_t size) {
     size = (size + 3) & ~3;
 
     heap_block_t* block = (heap_block_t*)((uintptr_t)ptr - sizeof(heap_block_t));
-    heap_block_t* curr = block;
 
     // split block into two smaller ones
     if (size < block->size) {
@@ -145,7 +152,11 @@ void* krealloc(void* ptr, size_t size) {
 
     // resize previous block
     block->size = blocks_size;
-    block->next = curr->next;
+    block->next = next;
+
+    if (next == NULL) {
+        heap_end = block;
+    }
 
     if (blocks_size == size) {
         block->free = false;
@@ -157,6 +168,7 @@ void* krealloc(void* ptr, size_t size) {
         block = split_block(block, size);
     }
     
+    block->free = false;
     return GET_METADATA_ADDR(block);
 }
 
