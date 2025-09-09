@@ -8,13 +8,13 @@
 #include "exec/exec.h"
 
 #define PROCESS_STACK_START 0xBFFFFFFF
-#define PROCESS_STACK_SIZE  (1024 * 1024 * 4)
+#define PROCESS_STACK_SIZE  (1024 * 1024 * 16)
 
 #define KERNEL_STACK_BASE 0xC0400000
 #define KERNEL_STACK_SIZE (1024 * 512)
 
 #define PROCESS_HEAP_START 0x800000
-#define PROCESS_HEAP_SIZE  (1024 * 1024 * 24)
+#define PROCESS_HEAP_SIZE  (1024 * 1024 * 64)
 
 typedef struct task_state_t {
     uint32_t eax, ebx, ecx, edx;
