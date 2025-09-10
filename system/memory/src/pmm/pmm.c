@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "bit_operations/bit_operations.h"
+#include "panic/panic.h"
 
 static uint8_t bitmap[BITMAP_SIZE];
 
@@ -24,6 +25,7 @@ void pmm_init(void) {
 
 void* pmm_alloc_page(void) {
     if (free_page_count == 0) {
+        kpanic("Out of memory");
         return NULL;
     }
 
@@ -44,6 +46,7 @@ void* pmm_alloc_page(void) {
         }
     }
 
+    kpanic("Out of memory");
     return NULL;
 }
 
