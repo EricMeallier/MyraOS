@@ -427,9 +427,11 @@ static bool resolve_path(ext2_fs_t *fs, const char *path, inode_t *out_inode) {
             kfree(name);
         }
 
-        if (entries == NULL) {
+        if (entries != NULL) {
             for (size_t i = 0; i < count; i++) {
-                kfree(entries[i]); // each dir_entry
+                if (entries[i] != NULL) {
+                    kfree(entries[i]); // each dir_entry
+                }
             }
             kfree(entries); // the array itself
         }
