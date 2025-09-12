@@ -93,7 +93,7 @@ widget_t* widget_os_top_bar_create(uint32_t x, uint32_t y, int height, argb_t co
 
     const char* icon_path = "/myra/components/turn_off_button.bmp";
     image_t* icon = image_parse(icon_path);
-    if (icon != NULL && icon->pixels != NULL) {
+    if (icon != NULL) {
         data->power_pixels = (uint32_t*)icon->pixels;
         data->power_w = (int)icon->width;
         data->power_h = (int)icon->height;
