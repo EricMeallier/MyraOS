@@ -7,7 +7,7 @@
 #include "font/font.h"
 #include "schedule/schedule.h"
 
-typedef struct {
+typedef struct window_widget_data_t {
     char* title;
     win_handle_t handle;
     uint32_t app_w;

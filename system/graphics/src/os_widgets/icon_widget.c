@@ -10,11 +10,11 @@
 #define ICON_W 64
 #define ICON_H 64
 
-typedef struct {
+typedef struct icon_widget_data_t {
     char* title;
     char* icon_path;
     char* exec_path;
-    uint32_t* pixels;
+    argb_t* pixels;
     int sw;
     int sh;
 } icon_widget_data_t;
