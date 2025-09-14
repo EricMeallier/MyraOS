@@ -6,8 +6,6 @@
 #include "pmm/pmm.h"
 #include "schedule/schedule.h"
 
-#include "font/font.h"
-
 #define PROC_PAGE_DIR 0xDE000000 
 
 static size_t current_pid = 0;
