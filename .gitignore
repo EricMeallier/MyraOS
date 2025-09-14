@@ -29,6 +29,9 @@
 build/
 out/
 
+# Release folder
+release/
+
 # Compile commands
 compile_commands.json
 

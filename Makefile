@@ -118,3 +118,21 @@ $(OBJ_DIR)/libc/src/libc_user/%.o: $(SRC_DIR)/libc/src/libc_user/%.c
 	$(CC) $(CFLAGS) $$EXTRA_FLAGS -c $< -o $@
 
 libc: $(LIBC_USER_A)
+
+# ──────────  release  ──────────
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse --short=5 HEAD)
+RELEASE_DIR := release/MyraOS-$(VERSION)
+
+.PHONY: fs-ok release
+
+fs-ok:
+	@test -f $(FS_IMG) || (echo "missing $(FS_IMG). build/populate it first"; false)
+
+release: $(ISO_IMG) fs-ok
+	mkdir -p $(RELEASE_DIR)
+	cp -a $(ISO_IMG) $(RELEASE_DIR)/MyraOS.iso
+	cp -a $(FS_IMG) $(RELEASE_DIR)/fs.img
+	(cd $(RELEASE_DIR) && \
+	  (sha256sum MyraOS.iso 2>/dev/null || shasum -a 256 MyraOS.iso) > MyraOS.iso.sha256 && \
+	  (sha256sum fs.img     2>/dev/null || shasum -a 256 fs.img)     > fs.img.sha256 && \
+	  (sha256sum MyraOS.iso fs.img 2>/dev/null || shasum -a 256 MyraOS.iso fs.img) > CHECKSUMS.sha256)
