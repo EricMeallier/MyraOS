@@ -48,7 +48,7 @@ qemu-system-i386 -cdrom MyraOS.iso -drive file=fs.img,format=raw,if=ide,index=0 
 
 ### Windows
 
-Here, Linux/macOS or even WSL are better; use it as a last resort:
+Here, Linux/macOS or even WSL are better; use it as a last resort:  
 **Normal**
 ```
 qemu-system-i386 -cdrom MyraOS.iso -drive file=fs.img,format=raw,if=ide,index=0 -m 1024
