@@ -120,10 +120,12 @@ $(OBJ_DIR)/libc/src/libc_user/%.o: $(SRC_DIR)/libc/src/libc_user/%.c
 libc: $(LIBC_USER_A)
 
 # ──────────  release  ──────────
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse --short=5 HEAD)
+ifndef VERSION
+$(error VERSION is required. usage: make release VERSION=v0.1.0)
+endif
 RELEASE_DIR := release/MyraOS-$(VERSION)
 
-.PHONY: fs-ok release
+.PHONY: fs-ok release release-latest
 
 fs-ok:
 	@test -f $(FS_IMG) || (echo "missing $(FS_IMG). build/populate it first"; false)
