@@ -1,6 +1,8 @@
 # MyraOS
 
-A x86 Unix-like OS made entirely from scratch.  
+A x86 Unix-like OS made entirely from scratch.
+
+![MyraOS Desktop](https://i.imgur.com/XRRSfOp.jpeg "MyraOS Desktop")
 
 **Features**
 - Protected mode (GDT/IDT, ISRs/IRQs)
